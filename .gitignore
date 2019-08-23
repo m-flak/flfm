@@ -1,0 +1,5 @@
+*.pyc
+flfm/secret.key
+.env
+rules
+flask_session/*

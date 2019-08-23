@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% import "bootstrap/utils.html" as utils %}
+{% import "links.html" as links %}
+
+{% block body -%}
+<div id="layout">
+ <div class="container">
+  <div class="fl-row">
+      <div class="card full-card clear-card j-center">
+          <h1>Flask File Manager</h1>
+      </div>
+  </div>
+  {% set flashies = get_flashed_messages(with_categories=True) -%}
+  {%- if flashies|length() > 0 %}
+  <div class="fl-row">
+      {{ utils.flashed_messages(messages=flashies) }}
+  </div>
+  {% endif -%}
+  <div class="fl-row">
+      <div id="contents" class="card full-card card-shadow j-center">
+          <h4>Mapped Directories:</h4>
+          <hr/>
+          {%- if mapped_dirs|length() > 0 %}
+          {%- for mapped in mapped_dirs %}
+            {%- if mapped_dirs.num_allowed > 0 %}
+            <ul>
+                {% if mapped.dir_allowed -%}
+                <li>
+                    {{ links.shell_path_link('shell.shell_view', mapped.dir_path, mapped.dir_path) }}
+                </li>
+                {%- endif %}
+            </ul>
+            {% endif -%}
+          {% endfor -%}
+          {%- else %}
+            <p class="nothing-here">There are no mapped directories.</p>
+          {%- endif -%}
+      </div>
+  </div>
+ </div>
+</div>
+{{ super() }}
+{%- endblock %}

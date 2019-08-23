@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% import "bootstrap/utils.html" as utils %}
+{% import "links.html" as links %}
+
+{% block styles -%}
+{{ super() }}
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.css" />
+{%- endblock %}
+
+{% block body -%}
+<div id="layout">
+ <div class="container">
+  <div class="fl-row">
+      <div class="card full-card clear-card j-center">
+          <h1>Flask File Manager</h1>
+      </div>
+  </div>
+  {% set flashies = get_flashed_messages(with_categories=True) -%}
+  {%- if flashies|length() > 0 %}
+  <div class="fl-row">
+      {{ utils.flashed_messages(messages=flashies) }}
+  </div>
+  {% endif -%}
+  <div class="fl-row">
+      <div id="location-bar" class="card full-card card-shadow j-center">
+          <h4>{{ whereami }}</h4>
+          <div id="commands">
+              <ul>
+                  <li>
+                      <a id="buttonUp" class="btn btn-primary" href="#" role="button" title="Go Up...">
+                          &#x2191;
+                      </a>
+                  </li>
+                  <li>
+                      <a class="btn btn-primary" href="#" role="button" title="Upload File..." data-toggle="modal" data-target="#uploadModal">
+                          Upload
+                      </a>
+                  </li>
+              </ul>
+          </div>
+      </div>
+  </div>
+  <div class="fl-row">
+      <div class="card full-card card-shadow j-center">
+          {%- if folder_contents|length() != 0 %}
+          <table class="directory-list">
+          <thead>
+              <tr>
+                  <th id="header-contents" colspan="2">Contents</th>
+                  <th id="header-size" colspan="1">Size <i>(in bytes)</i></th>
+              </tr>
+          </thead>
+          <tbody>
+          {%- for content in folder_contents %}
+            <tr>
+                <td>
+                {%- if content.file %}
+                <img src="{{ url_for('static', filename='flfm_file.gif') }}"
+                    alt="File" title="File" />
+                {% elif content.directory %}
+                <img src="{{ url_for('static', filename='flfm_folder.gif') }}"
+                    alt="Directory" title="Directory" />
+                {% endif -%}
+                </td>
+                <td>
+                    {%- if content.directory %}
+                        {% set paragraph_caption -%}
+                            <p>{{ content.name }}</p>
+                        {%- endset %}
+                        {{ links.shell_path_link('shell.shell_view', content.uri_path, paragraph_caption, False) }}
+                    {%- else -%}
+                        {% set paragraph_caption -%}
+                            <p>{{ content.name }}</p>
+                        {%- endset %}
+                        {{ links.shell_file_link('shell.serve_file', content.path, paragraph_caption) }}
+                    {% endif -%}
+                </td>
+                <td>
+                    <p>{{ content.size }}</p>
+                </td>
+            </tr>
+          {% endfor -%}
+          </tbody>
+          </table>
+          {%- else %}
+          <p class="nothing-here">There's nothing here...</p>
+          {% endif -%}
+      </div>
+  </div>
+ </div>
+</div>
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="uploadModalAlerts">
+                </div>
+                <input type="file" class="filepond" name="filepond" data-max-files="1" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Close
+                </button>
+                <button type="button" id="uploadModalFinishButton" class="btn btn-primary" data-dismiss="modal">Finish</button>
+            </div>
+        </div>
+    </div>
+</div>
+{{ super() }}
+{%- endblock %}
+
+{% block scripts -%}
+{{ super() }}
+<script src="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.js"></script>
+<script type="text/javascript">
+    /*<!CDATA[*/
+    function make_error_alert(error_string) {
+        $("#uploadModalAlerts").append(`<div class='alert alert-danger' role='alert'>${error_string}</div>`);
+    }
+    var fp_object = null;
+    $("a#buttonUp").on("click", function() {
+        var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
+        document.location.assign(new_url);
+    });
+    $("#uploadModal").on("show.bs.modal", function(e) {
+        let file_input = $(e.currentTarget).find("input[type='file']").get(0);
+        $(e.currentTarget).find("button#uploadModalFinishButton").attr('disabled', true);
+        if (!fp_object) {
+            fp_object = FilePond.create(file_input);
+        }
+        let wl = window.location;
+        fp_object.setOptions({
+            allowPaste: false,
+            allowReplace: false,
+            allowRevert: false,
+            server: {
+                url: `${wl.protocol}//${wl.host}`,
+                process: {
+                    url: '/process',
+                    method: 'POST',
+                    headers: {
+                        'X-Uploadto': "{{ whereami }}"
+                    },
+                },
+            },
+            onprocessfile: function(err,file) {
+                if (!err) {
+                    var serverid = file.serverId;
+                    var ul_dir = "{{ whereami }}";
+                    $.ajax({
+                        method: 'POST',
+                        url: `${wl.protocol}//${wl.host}/process`,
+                        data: { id: serverid },
+                        dataType: 'text'
+                    }).done(function(d) {
+                        if (d === 'SUCCESS') {
+                            let bt_fin = $("#uploadModal").find("button#uploadModalFinishButton");
+                            bt_fin.attr('disabled', false);
+                        } else if (d === 'EXISTS') {
+                            make_error_alert("File already exists on server!");
+                        } else if (d === 'NOUPLOAD') {
+                            make_error_alert("File failed to be uploaded!");
+                        }
+                    });
+                }
+            },
+        });
+    });
+    $("#uploadModal").on("hidden.bs.modal", function (e) {
+        let file_input = $(e.currentTarget).find("input[type='file']").get(0);
+        $(e.currentTarget).find("button#uploadModalFinishButton").attr('disabled', false);
+        if (fp_object) {
+            fp_object.destroy(file_input);
+            delete fp_object;
+            fp_object = null;
+        }
+        let alerts = $("#uploadModalAlerts").children();
+        if (alerts.length > 0) {
+            alerts.each(function() {
+                $(this).remove();
+            });
+        }
+    });
+    //]]>
+</script>
+{%- endblock %}

@@ -1,0 +1,19 @@
+{% macro shell_path_link(shell_view, full_path, caption, fix=True) -%}
+{% if fix -%}
+    {%- set half_fixed_path = full_path|replace('/',' ',1) %}
+    {% set fixed_path = half_fixed_path|trim() -%}
+    <a href="{{ url_for(shell_view, view_path=fixed_path) }}">
+        {{ caption }}
+    </a>
+{%- else %}
+    <a href="{{ url_for(shell_view, view_path=full_path) }}">{{ caption }}</a>
+{%- endif %}
+{% endmacro -%}
+
+{% macro shell_file_link(shell_view, file_path, caption) -%}
+    {%- set urlified_path = file_path|e|urlencode() %}
+    {%- set file_url = url_for(shell_view) %}
+    <a href="{{ [file_url, '?f=', urlified_path]|join }}">
+        {{ caption }}
+    </a>
+{% endmacro -%}

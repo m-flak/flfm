@@ -1,0 +1,5 @@
+Flask
+Flask-Bootstrap
+Flask-DotEnv
+Flask-Session
+filetype
