@@ -3,7 +3,7 @@ import re
 import mimetypes
 import filetype
 from flask import (
-Blueprint, render_template, g, request, send_file, session, abort
+    Blueprint, render_template, g, request, send_file, session, abort
 )
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
@@ -23,12 +23,14 @@ def shell_default():
 @shell.route('/shell/<path:view_path>')
 @needs_rules
 def shell_view(view_path):
+    view_path_fixed = '/{}'.format(view_path)
     mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
-    enforce_mapped(mapped_dirs, '/{}'.format(view_path))
+    enforce_mapped(mapped_dirs, view_path_fixed)
 
-    shell_path = ShellPath('/{}'.format(view_path))
+    shell_path = ShellPath(view_path_fixed, mapped_dirs)
     return render_template('shell.html', whereami=shell_path.str_path,
-                           folder_contents=shell_path.children)
+                           folder_contents=shell_path.children,
+                           cwd_mapping=shell_path.mapping)
 
 @shell.route('/serve')
 @needs_rules
@@ -58,7 +60,7 @@ def process():
         filename = request.files['filepond'].filename
         upload_path = request.headers['X-Uploadto']
         filepond_id = make_filepond_id()
-        enforce_mapped(mapped_dirs, upload_path)
+        enforce_mapped(mapped_dirs, upload_path, True)
 
         s_entry = 'tmp_{}'.format(filepond_id)
         session[s_entry] = (filepond_id, upload_path, filename)

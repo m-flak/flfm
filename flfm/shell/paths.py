@@ -29,7 +29,7 @@ class ShellDirectory(ShellItem):
         super().__init__(path_obj)
 
 class ShellPath:
-    def __init__(self, path_string):
+    def __init__(self, path_string, dir_mappings=None):
         def get_files(dirs):
             while True:
                 try:
@@ -53,3 +53,7 @@ class ShellPath:
         self.directories = [ShellDirectory(dir) for dir in get_dirs(self.path.iterdir())]
         # Directories followed by files
         self.children = self.directories + self.files
+
+        self.mapping = None
+        if dir_mappings is not None:
+            self.mapping = dir_mappings.get_mapped_dir(self.str_path)

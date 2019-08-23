@@ -32,7 +32,7 @@
                       </a>
                   </li>
                   <li>
-                      <a class="btn btn-primary" href="#" role="button" title="Upload File..." data-toggle="modal" data-target="#uploadModal">
+                      <a class="btn btn-primary" id="buttonUpload" href="#" role="button" title="Upload File..." data-toggle="modal" data-target="#uploadModal">
                           Upload
                       </a>
                   </li>
@@ -117,6 +117,7 @@
 
 {% block scripts -%}
 {{ super() }}
+{%- if cwd_mapping.dir_allowuploads %}
 <script src="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.js"></script>
 <script type="text/javascript">
     /*<!CDATA[*/
@@ -186,7 +187,19 @@
                 $(this).remove();
             });
         }
+        window.location.reload(true);
     });
     //]]>
 </script>
+{%- else -%}
+<script type="text/javascript">
+    /*<!CDATA[*/
+    $("a#buttonUp").on("click", function() {
+        var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
+        document.location.assign(new_url);
+    });
+    $("a#buttonUpload").addClass('disabled');
+    //]]>
+</script>
+{% endif -%}
 {%- endblock %}

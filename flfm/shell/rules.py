@@ -21,7 +21,7 @@ def read_rules_file(rule_file):
 # ***
 # IMPORTANT!: ALLOW rules must be explicitly defined for any & each
 # subdirectories in the tree of a DISALLOW rule.
-def enforce_mapped(mapped_dirs, requested_path):
+def enforce_mapped(mapped_dirs, requested_path, for_upload=False):
     if mapped_dirs.num_disallowed > 0 or mapped_dirs.num_allowed > 0:
         compare_path = requested_path
         for mapped_dir in mapped_dirs:
@@ -32,6 +32,9 @@ def enforce_mapped(mapped_dirs, requested_path):
                     for more_mapped_dir in mapped_dirs:
                         if more_mapped_dir.dir_path == compare_path \
                         and more_mapped_dir.dir_allowed is True:
+                            # if we're checking for upload perms, do it now
+                            if for_upload is True and not more_mapped_dir.dir_allowuploads:
+                                abort(403)
                             return
                     abort(403)
 
@@ -69,9 +72,15 @@ class Rules:
         return len(self.rules)
 
 class MappedDirectory:
-    def __init__(self, dir_path, dir_allowed):
+    def __init__(self, dir_path, dir_allowed, dir_allowuploads):
         self._dir_path = dir_path
         self._dir_allowed = dir_allowed
+        self._dir_allowuploads = dir_allowuploads
+
+    @classmethod
+    def create_from_mapping(self, mapping, path_key):
+        allowed, allowuploads = mapping.get(path_key, (False, False))
+        return self(path_key, allowed, allowuploads)
 
     @property
     def dir_path(self):
@@ -81,13 +90,19 @@ class MappedDirectory:
     def dir_allowed(self):
         return self._dir_allowed
 
+    @property
+    def dir_allowuploads(self):
+        return self._dir_allowuploads
+
     def __eq__(self, other):
-        total_equates = 2
+        total_equates = 3
         equates = 0
 
         if self.dir_path == other.dir_path:
             equates += 1
         if self.dir_allowed == other.dir_allowed:
+            equates += 1
+        if self.dir_allowuploads == other.dir_allowuploads:
             equates += 1
 
         return equates is total_equates
@@ -109,11 +124,26 @@ class MappedDirectories(collections.abc.Mapping):
         rule_dict = dict()
 
         if rules.num_rules > 0:
+            # Tuple entries are as such:
+            # (ALLOWED??, UPLOAD_ALLOWED??)
             for k, v in rules.rules.items(True):
                 if 'Allowed' in k:
-                    rule_dict[v] = True
+                    current = rule_dict.get(v, None)
+                    if current is None:
+                        rule_dict[v] = (True, False)
+                    else:
+                        rule_dict[v] = (True, current[1])
                 elif 'Disallowed' in k or 'DisAllowed' in k:
-                    rule_dict[v] = False
+                    # what is the point of other properties in a disallow??
+                    # just overwrite
+                    rule_dict[v] = (False, False)
+                elif 'AllowUploads' in k or 'AllowUpload' in k:
+                    current = rule_dict.get(v, None)
+                    if current is None:
+                        # Mark as allowed also since not in dict
+                        rule_dict[v] = (True, True)
+                    else:
+                        rule_dict[v] = (current[0], True)
                 else:
                     continue
 
@@ -133,12 +163,16 @@ class MappedDirectories(collections.abc.Mapping):
                 break
             mapped_dir = next(iterator)
             num_yielded += 1
-            yield MappedDirectory(mapped_dir, self.D[mapped_dir])
+            yield MappedDirectory(mapped_dir, self.D[mapped_dir][0],
+                                  self.D[mapped_dir][1])
 
     def __contains__(self, value):
         if isinstance(value, MappedDirectory):
             return value.dir_path in self.D
         return super().__contains__(value)
+
+    def get_mapped_dir(self, dir_path):
+        return MappedDirectory.create_from_mapping(self, dir_path)
 
     @property
     def num_allowed(self):

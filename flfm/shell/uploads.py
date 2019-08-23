@@ -25,10 +25,10 @@ class UploadedFile:
                 raise FileExistsError
             if self.permanent:
                 self._file = open(os.path.join(self.destination_dir,
-                                  self.filename), 'rb')
+                                               self.filename), 'rb')
             elif self.temporary:
                 self._file = open(os.path.join(self.temporary_dir,
-                                  self.filename), 'rb')
+                                               self.filename), 'rb')
             else:
                 raise FileNotFoundError
         return self._file
