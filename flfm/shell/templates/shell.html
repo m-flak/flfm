@@ -32,6 +32,11 @@
                       </a>
                   </li>
                   <li>
+                      <a class="btn btn-primary fl-settings" href="#" role="button" title="Settings..." data-toggle="modal" data-target="#settingsModal">
+                          <img src="{{ url_for('static', filename='flfm_settings.gif') }}" />
+                      </a>
+                  </li>
+                  <li>
                       <a class="btn btn-primary" id="buttonUpload" href="#" role="button" title="Upload File..." data-toggle="modal" data-target="#uploadModal">
                           Upload
                       </a>
@@ -112,11 +117,46 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <img src="{{ url_for('static', filename='flfm_settings.gif') }}" />
+                    <h5 class="modal-title">Settings</h5>
+                </div>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5>Built-in Viewer:</h5>
+                <p>Whether or not you wish to enable the built-in viewer for
+                    text files.
+                </p>
+                <form id="settingsModalForm-1">
+                    <input type="radio" name="viewer" id="viewerDisabled" value="disabled" />
+                    <label for="viewerDisabled">Disabled</label>
+                    <br/>
+                    <input type="radio" name="viewer" id="viewerEnabled" value="enabled" />
+                    <label for="viewerEnabled">Enabled</label>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Close
+                </button>
+                <button type="button" id="settingsModalApplyButton" class="btn btn-primary" data-dismiss="modal">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
 {{ super() }}
 {%- endblock %}
 
 {% block scripts -%}
 {{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
 {%- if cwd_mapping.dir_allowuploads %}
 <script src="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.js"></script>
 <script type="text/javascript">
@@ -125,6 +165,7 @@
         $("#uploadModalAlerts").append(`<div class='alert alert-danger' role='alert'>${error_string}</div>`);
     }
     var fp_object = null;
+    var ul_finished = false;
     $("a#buttonUp").on("click", function() {
         var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
         document.location.assign(new_url);
@@ -173,6 +214,12 @@
             },
         });
     });
+    $("#uploadModal").find("div.modal-footer").children("button").on("click", function(e) {
+        var tc = e.currentTarget.textContent.trim();
+        if (tc === 'Finish') {
+            ul_finished = true;
+        }
+    });
     $("#uploadModal").on("hidden.bs.modal", function (e) {
         let file_input = $(e.currentTarget).find("input[type='file']").get(0);
         $(e.currentTarget).find("button#uploadModalFinishButton").attr('disabled', false);
@@ -187,7 +234,37 @@
                 $(this).remove();
             });
         }
-        window.location.reload(true);
+        if (ul_finished) {
+            ul_finished = false;
+            window.location.reload(true);
+        }
+    });
+    $("#settingsModal").on("show.bs.modal", function(e) {
+        var cookie = Cookies.get('flfm_viewer');
+        if (cookie != null) {
+            let vform = $(e.currentTarget).find("form#settingsModalForm-1").get(0);
+            for (var i = 0; i < vform.elements.length; i++) {
+                if (vform.elements[i].value === cookie) {
+                    vform.elements[i].checked = true;
+                }
+            }
+        }
+    });
+    $("#settingsModalApplyButton").on("click", function() {
+        let vform = $("#settingsModal").find("form#settingsModalForm-1").get(0);
+        var viewer_new_val = null;
+        for (var i = 0; i < vform.elements.length; i++) {
+            if (vform.elements[i].checked == true) {
+                viewer_new_val = vform.elements[i].value;
+            }
+        }
+        if (!viewer_new_val) {
+            return;
+        }
+        if (Cookies.get('flfm_viewer') != null) {
+            Cookies.remove('flfm_viewer');
+        }
+        Cookies.set('flfm_viewer', viewer_new_val);
     });
     //]]>
 </script>
@@ -199,6 +276,33 @@
         document.location.assign(new_url);
     });
     $("a#buttonUpload").addClass('disabled');
+    $("#settingsModal").on("show.bs.modal", function(e) {
+        var cookie = Cookies.get('flfm_viewer');
+        if (cookie != null) {
+            let vform = $(e.currentTarget).find("form#settingsModalForm-1").get(0);
+            for (var i = 0; i < vform.elements.length; i++) {
+                if (vform.elements[i].value === cookie) {
+                    vform.elements[i].checked = true;
+                }
+            }
+        }
+    });
+    $("#settingsModalApplyButton").on("click", function() {
+        let vform = $("#settingsModal").find("form#settingsModalForm-1").get(0);
+        var viewer_new_val = null;
+        for (var i = 0; i < vform.elements.length; i++) {
+            if (vform.elements[i].checked == true) {
+                viewer_new_val = vform.elements[i].value;
+            }
+        }
+        if (!viewer_new_val) {
+            return;
+        }
+        if (Cookies.get('flfm_viewer') != null) {
+            Cookies.remove('flfm_viewer');
+        }
+        Cookies.set('flfm_viewer', viewer_new_val);
+    });
     //]]>
 </script>
 {% endif -%}

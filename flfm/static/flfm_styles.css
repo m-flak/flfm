@@ -65,6 +65,13 @@ th#header-size {
     flex-grow: 1;
 }
 
+.fl-settings {
+    padding: 0.15em;
+}
+.fl-settings img {
+    filter: brightness(120%);
+}
+
 .card {
     position: relative;
     display: flex;
@@ -138,4 +145,23 @@ div#layout {
 #uploadModalLabel {
     position: absolute;
     font-weight: bolder;
+}
+
+#settingsModal div.modal-dialog > div.modal-content > div.modal-header > div {
+    display: flex;
+    position: absolute;
+}
+#settingsModal div.modal-dialog > div.modal-content > div.modal-header > div * {
+    padding-right: 1rem;
+    font-weight: bolder;
+}
+#settingsModal div.modal-dialog > div.modal-content > div.modal-header > div h5 {
+    margin-top: 0.2em;
+}
+#settingsModal div.modal-dialog > div.modal-content > div.modal-body > h5 {
+    font-weight: bold;
+    text-decoration: underline;
+}
+#settingsModal div.modal-dialog > div.modal-content > div.modal-body > p {
+    font-size: 9.5pt;
 }
