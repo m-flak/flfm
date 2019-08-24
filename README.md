@@ -40,9 +40,9 @@ By default, in the presence of a rules file, only directories &amp; subdirectori
 Please note that all of these rules apply only to directories &amp; files that are accessible by the WSGI server's _uid/gid_.
 
 **Explanation:**
-```Allowed=/path/to/foo``` - _give flfm access to this dir_
-```Disallowed,DisAllowed=/path/to/foo``` - _restrict flfm's access to this dir_
-```AllowUpload,AllowUploads=/path/to/foo``` - _allow a user to upload files in the given directory_
+```Allowed=/path/to/foo``` - _give flfm access to this dir_<br/>
+```Disallowed,DisAllowed=/path/to/foo``` - _restrict flfm's access to this dir_<br/>
+```AllowUpload,AllowUploads=/path/to/foo``` - _allow a user to upload files in the given directory_<br/>
 
 ### Before Using flfm
 Configuring the rules and creating a dot-env file is not quite enough to get started with flfm.
