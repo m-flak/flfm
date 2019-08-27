@@ -10,10 +10,16 @@
 {%- endif %}
 {% endmacro -%}
 
-{% macro shell_file_link(shell_view, file_path, caption) -%}
+{% macro shell_file_link(shell_view, file_path, caption, force_dl=False) -%}
     {%- set urlified_path = file_path|e|urlencode() %}
     {%- set file_url = url_for(shell_view) %}
-    <a href="{{ [file_url, '?f=', urlified_path]|join }}">
-        {{ caption }}
-    </a>
+    {% if force_dl -%}
+        <a href="{{ [file_url, '?f=', urlified_path, '&dl=1']|join }}">
+            {{ caption }}
+        </a>
+    {%- else -%}
+        <a href="{{ [file_url, '?f=', urlified_path]|join }}">
+            {{ caption }}
+        </a>
+    {%- endif %}
 {% endmacro -%}

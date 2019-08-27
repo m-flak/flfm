@@ -72,6 +72,16 @@ th#header-size {
     filter: brightness(120%);
 }
 
+span.btn, span.btn-primary {
+    padding: 0;
+}
+span.btn a, span.btn-primary a {
+    padding: 12px 12px;
+    line-height: 2.3;
+    color: #fff;
+    text-decoration: none;
+}
+
 .card {
     position: relative;
     display: flex;
@@ -164,4 +174,8 @@ div#layout {
 }
 #settingsModal div.modal-dialog > div.modal-content > div.modal-body > p {
     font-size: 9.5pt;
+}
+
+#viewer-contents {
+    margin: 1rem !important;
 }

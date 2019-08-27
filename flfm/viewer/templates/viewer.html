@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "bootstrap/utils.html" as utils %}
+{% import "links.html" as links %}
+
+{% block metas -%}
+    <meta charset="utf-8" />
+    {{ super() }}
+{%- endblock %}
+
+{% block body -%}
+<div id="layout">
+ <div class="container">
+  <div class="fl-row">
+      <div class="card full-card clear-card j-center">
+          <h1>Flask File Manager</h1>
+      </div>
+  </div>
+  {% set flashies = get_flashed_messages(with_categories=True) -%}
+  {%- if flashies|length() > 0 %}
+  <div class="fl-row">
+      {{ utils.flashed_messages(messages=flashies) }}
+  </div>
+  {% endif -%}
+  <div class="fl-row">
+      <div id="location-bar" class="card full-card card-shadow j-center">
+          <h4>{{ current_file }}</h4>
+          <div id="commands">
+              <ul>
+                  <li>
+                      <span class="btn btn-primary" title="Return to Directory..." role="button">
+                          {{ links.shell_path_link('shell.shell_view', current_dir, '←') }}
+                      </span>
+                  </li>
+                  <li>
+                      <span class="btn btn-primary" title="Download File..." role="button">
+                          {{ links.shell_file_link('shell.serve_file', current_file, 'Download', True) }}
+                      </span>
+                  </li>
+              </ul>
+          </div>
+      </div>
+  </div>
+  <div class="fl-row">
+      <div class="card full-card card-shadow j-center">
+          <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+      </div>
+  </div>
+ </div>
+</div>
+{{ super() }}
+{%- endblock %}

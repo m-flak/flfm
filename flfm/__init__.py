@@ -3,6 +3,7 @@ from flask import Flask, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_session import Session
 from .shell import shell
+from .viewer import viewer, vcache
 
 bootstrap = Bootstrap()
 e_session = Session()
@@ -22,7 +23,11 @@ def create_app(config_object):
     bootstrap.init_app(app)
     e_session.init_app(app)
 
+    # Setup dependents
+    vcache.init_app(app)
+
     app.register_blueprint(shell, url_prefix='/')
+    app.register_blueprint(viewer, url_prefix='/viewer/')
 
     app.add_url_rule('/', app_route.__name__, app_route)
 

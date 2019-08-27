@@ -3,7 +3,8 @@ import re
 import mimetypes
 import filetype
 from flask import (
-    Blueprint, render_template, g, request, send_file, session, abort
+    Blueprint, render_template, g, request, send_file, session, abort, redirect,
+    url_for
 )
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
@@ -13,6 +14,15 @@ shell = Blueprint('shell', __name__, template_folder='templates')
 
 def make_filepond_id():
     return ord(os.urandom(1))<<16|ord(os.urandom(1))<<8|ord(os.urandom(1))<<4|ord(os.urandom(1))
+
+# Set cache-control header to no-store so the viewer will always work if enabled
+@shell.after_request
+def add_header(response):
+    if 'Cache-Control' not in response.headers:
+        response.headers['Cache-Control'] = 'no-store'
+    else:
+        response.headers['Cache-Control'] = 'no-store'
+    return response
 
 @shell.route('/shell')
 @needs_rules
@@ -45,6 +55,14 @@ def serve_file():
             mimetype = filetype.guess(input_file).mime
         except AttributeError:
             mimetype = 'application/octet-stream'
+
+    force_download = request.args.get('dl', 0)
+    # if the url contains dl=1 skip viewer check altogether
+    if 'flfm_viewer' in request.cookies and force_download == 0:
+        if request.cookies['flfm_viewer'] == 'enabled' \
+        and re.match('text/', mimetype) is not None:
+            return redirect("{}?f={}".format(url_for('viewer.view_file'),
+                                            input_file))
 
     return send_file(input_file, mimetype=mimetype, as_attachment=True,
                      attachment_filename=os.path.basename(input_file))
