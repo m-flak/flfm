@@ -50,7 +50,7 @@ class ViewerCache:
         self.finish_setup()
 
     def finish_setup(self):
-        self.cache = LFUCache(self.max_file_size*self.max_files)
+        self.cache = LFUCache(self.max_file_size*self.max_files, self.getsizeof)
 
     @cachedmethod(operator.attrgetter('cache'), hashkey,
                   operator.attrgetter('lock'))
