@@ -44,7 +44,7 @@ class UploadedFile:
     # Creates and opens the temporary file for writing
     def create_temporary(self):
         if not os.path.exists(self.temporary_dir):
-            os.mkdir(self.temporary_dir, 0o664)
+            os.mkdir(self.temporary_dir, 0o774)
 
         if self._file is not None:
             self._file.close()
