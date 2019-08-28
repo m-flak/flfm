@@ -17,27 +17,23 @@ def read_rules_file(rule_file):
 
 # Enforce the rules from the rules file on requested_path
 # Restrictions > Permissions
-# An ALLOW rule enables traversal of all children
-# A DISALLOW rule restricts traversal of all children
-# ***
-# IMPORTANT!: ALLOW rules must be explicitly defined for any & each
-# subdirectories in the tree of a DISALLOW rule.
+# FIXME: ALLOW Rules required for subdirectories
 def enforce_mapped(mapped_dirs, requested_path, for_upload=False):
-    if mapped_dirs.num_disallowed > 0 or mapped_dirs.num_allowed > 0:
-        compare_path = requested_path
-        for mapped_dir in mapped_dirs:
-            # the requested path contains a path with a rule
-            if compare_path.find(mapped_dir.dir_path) != -1:
-                if mapped_dir.dir_allowed is False:
-                    # handle explicit allows for a disallow's children
-                    for more_mapped_dir in mapped_dirs:
-                        if more_mapped_dir.dir_path == compare_path \
-                        and more_mapped_dir.dir_allowed is True:
-                            # if we're checking for upload perms, do it now
-                            if for_upload is True and not more_mapped_dir.dir_allowuploads:
-                                abort(403)
-                            return
-                    abort(403)
+    requested_md = mapped_dirs.get_mapped_dir(requested_path)
+    for mapped_dir in mapped_dirs:
+        if for_upload:
+            if requested_md == mapped_dir:
+                if not mapped_dir.dir_allowuploads:
+                    break
+                return
+        else:
+            if requested_md == mapped_dir:
+                if not mapped_dir.dir_allowed:
+                    break
+                return
+    # Can't find a damn thing? Abort!
+    abort(403)
+
 
 def needs_rules(needing_method):
     @wraps(needing_method)
@@ -98,6 +94,9 @@ class MappedDirectory:
     @property
     def dir_allowuploads(self):
         return self._dir_allowuploads
+
+    def __repr__(self):
+        return '<MappedDirectory \'{}\': {}>'.format(self.dir_path, self.__dict__)
 
     def __eq__(self, other):
         total_equates = 3
