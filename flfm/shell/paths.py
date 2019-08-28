@@ -56,4 +56,5 @@ class ShellPath:
 
         self.mapping = None
         if dir_mappings is not None:
-            self.mapping = dir_mappings.get_mapped_dir(self.str_path)
+            if len(dir_mappings) > 0:
+                self.mapping = dir_mappings.get_mapped_dir(self.str_path)

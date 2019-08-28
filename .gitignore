@@ -2,4 +2,5 @@
 flfm/secret.key
 .env
 rules
+flfmenv/*
 flask_session/*

@@ -8,7 +8,8 @@ from flask import current_app, g, flash, abort
 # Generate (key, value) tuples from the rules file
 def read_rules_file(rule_file):
     lines = rule_file.readlines()
-    sorted_lines = sorted(lines,
+    good_lines = list(filter(lambda line: len(line) > 2, lines))
+    sorted_lines = sorted(good_lines,
                           key=lambda line: re.match(r"^(\w+)\=", line).group(1))
     for line in sorted_lines:
         pair = re.search(r"(\w*)\=([/\.\w]*)", line)
