@@ -80,7 +80,11 @@ class MappedDirectory:
 
     @classmethod
     def create_from_mapping(self, mapping, path_key):
-        allowed, allowuploads = mapping.get(path_key, (False, False))
+        try:
+            allowed, allowuploads = mapping.get(path_key)
+        except TypeError:
+            allowed, allowuploads = False, False
+
         return self(path_key, allowed, allowuploads)
 
     @property

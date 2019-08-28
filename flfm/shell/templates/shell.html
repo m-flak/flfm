@@ -47,6 +47,7 @@
   </div>
   <div class="fl-row">
       <div class="card full-card card-shadow j-center">
+	  {%- if cwd_mapping.dir_allowed %}
           {%- if folder_contents|length() != 0 %}
           <table class="directory-list">
           <thead>
@@ -90,6 +91,9 @@
           {%- else %}
           <p class="nothing-here">There's nothing here...</p>
           {% endif -%}
+	  {%- else %}
+	  <p class="nothing-here">You are not authorized to view this location.</p>
+	  {% endif -%}
       </div>
   </div>
  </div>
