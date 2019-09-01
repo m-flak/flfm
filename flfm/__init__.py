@@ -8,6 +8,20 @@ from .viewer import viewer, vcache
 bootstrap = Bootstrap()
 e_session = Session()
 
+def format_root(*args, **kwargs):
+    root = kwargs.get('root', '')
+    if not args:
+        return root
+
+    formatted = root
+    for arg in args:
+        add_me = arg
+        if root[len(root)-1] == '/' and arg[0] == '/':
+            add_me = arg.lstrip('/')
+        formatted += add_me
+
+    return formatted
+
 def create_app(config_object):
     app = Flask(__name__)
     app.config.from_object(config_object)
@@ -26,10 +40,16 @@ def create_app(config_object):
     # Setup dependents
     vcache.init_app(app)
 
-    app.register_blueprint(shell, url_prefix='/')
-    app.register_blueprint(viewer, url_prefix='/viewer/')
+    root = app.config.get('APPLICATION_ROOT', '/')
+    app.register_blueprint(shell, url_prefix=format_root(root=root))
+    app.register_blueprint(viewer, url_prefix=format_root('/viewer/',root=root))
 
-    app.add_url_rule('/', app_route.__name__, app_route)
+    if root != '/':
+        app.add_url_rule(format_root(root=root), app_route.__name__, app_route)
+        app.add_url_rule(format_root('/', root=root), app_route.__name__,
+                         app_route)
+    else:
+        app.add_url_rule('/', app_route.__name__, app_route)
 
     return app
 

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/utils.html" as utils %}
 {% import "links.html" as links %}
+{% import "scripting.html" as scripting %}
 
 {% block styles -%}
 {{ super() }}
@@ -160,6 +161,7 @@
 
 {% block scripts -%}
 {{ super() }}
+{{ scripting.declare_string_var('flfm_root', g.available_vars.app_root) }}
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
 {%- if cwd_mapping.dir_allowuploads %}
 <script src="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.js"></script>
@@ -167,6 +169,21 @@
     /*<!CDATA[*/
     function make_error_alert(error_string) {
         $("#uploadModalAlerts").append(`<div class='alert alert-danger' role='alert'>${error_string}</div>`);
+    }
+    function make_url(url_base, root, uri) {
+        if (root.endsWith('/') && uri.startsWith('/')) {
+            var new_uri = uri.replace(/^\//,' ').trim()
+            if (url_base != null) {
+                return `${url_base}${root}${new_uri}`;
+            }
+            else {
+                return `${root}${new_uri}`;
+            }
+        }
+        if (!url_base) {
+            return `${root}${uri}`;
+        }
+        return `${url_base}${root}${uri}`;
     }
     var fp_object = null;
     var ul_finished = false;
@@ -188,7 +205,7 @@
             server: {
                 url: `${wl.protocol}//${wl.host}`,
                 process: {
-                    url: '/process',
+                    url: make_url(null, flfm_root, '/process'),
                     method: 'POST',
                     headers: {
                         'X-Uploadto': "{{ whereami }}"
@@ -201,7 +218,7 @@
                     var ul_dir = "{{ whereami }}";
                     $.ajax({
                         method: 'POST',
-                        url: `${wl.protocol}//${wl.host}/process`,
+                        url: make_url(`${wl.protocol}//${wl.host}`, flfm_root, '/process'),
                         data: { id: serverid },
                         dataType: 'text'
                     }).done(function(d) {

@@ -1,0 +1,5 @@
+{% macro declare_string_var(var_name, var_content) -%}
+    <script type="text/javascript">
+        var {{ var_name }} = "{{ var_content }}";
+    </script>
+{%- endmacro %}

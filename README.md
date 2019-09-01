@@ -26,6 +26,9 @@ RULES_FILE=/etc/flfm.d/rules
 
 # Where to store session files
 SESSION_FILE_DIR=/var/cache/flfm/
+
+# Uncomment to change Application Root
+##APPLICATION_ROOT=/flfm
 ```
 **Explanation:**<br/>
 ```RULES_FILE``` - _the location of the rules file_

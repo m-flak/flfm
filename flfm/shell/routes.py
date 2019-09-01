@@ -4,7 +4,7 @@ import mimetypes
 import filetype
 from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
-    url_for
+    url_for, current_app
 )
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
@@ -23,6 +23,12 @@ def add_header(response):
     else:
         response.headers['Cache-Control'] = 'no-store'
     return response
+
+@shell.before_request
+def make_vars_available():
+    g.available_vars = {
+        'app_root': current_app.config.get('APPLICATION_ROOT', '/')
+    }
 
 @shell.route('/shell')
 @needs_rules
