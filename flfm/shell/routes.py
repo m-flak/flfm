@@ -6,6 +6,7 @@ from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
     url_for, current_app
 )
+from flfm.misc import get_banner_string
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
 from .uploads import UploadedFile
@@ -27,7 +28,8 @@ def add_header(response):
 @shell.before_request
 def make_vars_available():
     g.available_vars = {
-        'app_root': current_app.config.get('APPLICATION_ROOT', '/')
+        'app_root': current_app.config.get('APPLICATION_ROOT', '/'),
+        'banner_string': get_banner_string(current_app),
     }
 
 @shell.route('/shell')

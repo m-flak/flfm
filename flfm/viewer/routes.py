@@ -1,11 +1,18 @@
 import os
 from flask import (
-    Blueprint, render_template, g, request
+    Blueprint, render_template, g, request, current_app
 )
 from flfm.shell.rules import enforce_mapped, needs_rules, MappedDirectories
+from flfm.misc import get_banner_string
 from .vcache import vcache
 
 viewer = Blueprint('viewer', __name__, template_folder='templates')
+
+@viewer.before_request
+def make_vars_available():
+    g.available_vars = {
+        'banner_string': get_banner_string(current_app),
+    }
 
 @viewer.route('/view')
 @needs_rules

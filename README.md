@@ -29,6 +29,12 @@ SESSION_FILE_DIR=/var/cache/flfm/
 
 # Uncomment to change Application Root
 ##APPLICATION_ROOT=/flfm
+
+# Customize the banner
+##BANNER="My Cool Custom Banner"
+# Or use one from a file (limit one line)
+##BANNER_TYPE="file"
+##BANNER=/etc/flfm.d/banner
 ```
 **Explanation:**<br/>
 ```RULES_FILE``` - _the location of the rules file_

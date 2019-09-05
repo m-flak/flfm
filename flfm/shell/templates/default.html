@@ -7,7 +7,7 @@
  <div class="container">
   <div class="fl-row">
       <div class="card full-card clear-card j-center">
-          <h1>Flask File Manager</h1>
+          <h1>{{ g.available_vars.banner_string }}</h1>
       </div>
   </div>
   {% set flashies = get_flashed_messages(with_categories=True) -%}
