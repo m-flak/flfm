@@ -3,3 +3,25 @@
         var {{ var_name }} = "{{ var_content }}";
     </script>
 {%- endmacro %}
+
+{# The following macro requires base64.js, Be sure to include it! #}
+{# It's on jsdelivr as `js-base64` #}
+{% macro declare_blob_from_b64(blob_name, base64_data, mimetype='') -%}
+    <script type="text/javascript">
+        var {{ blob_name }} = function() {
+            const b64_data = "{{ base64_data }}";
+            const data_mimetype = "{{ mimetype }}";
+            if (Blob.prototype.constructor === undefined) {
+                return null;
+            }
+            var buffer = new Array(Base64.atob(b64_data));
+            return new Blob(buffer, {type: data_mimetype});
+        }();
+        var {{ [blob_name, 'url']|join('_') }} = function(b) {
+            if (!b) {
+                return "about:blank";
+            }
+            return URL.createObjectURL(b);
+        }({{ blob_name }});
+    </script>
+{%- endmacro %}

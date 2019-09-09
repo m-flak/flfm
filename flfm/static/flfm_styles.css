@@ -175,6 +175,9 @@ div#layout {
 #settingsModal div.modal-dialog > div.modal-content > div.modal-body > p {
     font-size: 9.5pt;
 }
+#settingsModal div.modal-dialog > div.modal-content > div.modal-body > p > a > img {
+    padding: 0 0 3px 3px;
+}
 
 #viewer-contents {
     margin: 1rem !important;

@@ -4,7 +4,7 @@
 Flask File Manager (flfm) is a WSGI application written in Python. If you're new to deploying and setting up WSGI applications, please search the web as that is beyond the scope of this README.
 
 **Features:**
-* Viewer for text files.
+* Viewer for files. _Currently Supported: Text Files, Image files_
 * Uploading of files.
 * _**Configurable**_. Define where users can snoop around and upload (or not) files.
 
@@ -67,3 +67,4 @@ This is easily accomplished with running ```make``` in the project root director
 Special thanks go out to the following javascript libraries not listed in the project's dependencies:
 * [Filepond](https://pqina.nl/filepond/) (for the uploader)
 * [js.cookies](https://github.com/js-cookie/js-cookie)
+* [base64.js](https://github.com/dankogai/js-base64)

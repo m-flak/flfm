@@ -6,7 +6,7 @@ from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
     url_for, current_app
 )
-from flfm.misc import get_banner_string
+from flfm.misc import get_banner_string, make_arg_url
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
 from .uploads import UploadedFile
@@ -15,6 +15,16 @@ shell = Blueprint('shell', __name__, template_folder='templates')
 
 def make_filepond_id():
     return ord(os.urandom(1))<<16|ord(os.urandom(1))<<8|ord(os.urandom(1))<<4|ord(os.urandom(1))
+
+def is_viewable_mimetype(mimetype):
+    conditions = [ re.match('text/', mimetype) is not None,
+                   re.match('image/', mimetype) is not None ]
+
+    for c in conditions:
+        if c:
+            return c
+
+    return False
 
 # Set cache-control header to no-store so the viewer will always work if enabled
 @shell.after_request
@@ -68,9 +78,9 @@ def serve_file():
     # if the url contains dl=1 skip viewer check altogether
     if 'flfm_viewer' in request.cookies and force_download == 0:
         if request.cookies['flfm_viewer'] == 'enabled' \
-        and re.match('text/', mimetype) is not None:
-            return redirect("{}?f={}".format(url_for('viewer.view_file'),
-                                            input_file))
+        and is_viewable_mimetype(mimetype):
+            return redirect(make_arg_url(url_for('viewer.view_file'),
+                                         {'f': input_file, 'mt': mimetype,}))
 
     return send_file(input_file, mimetype=mimetype, as_attachment=True,
                      attachment_filename=os.path.basename(input_file))
@@ -82,6 +92,7 @@ def process():
     content_type = re.search(r"^.+;",
                              request.headers['Content-Type']).group(0).strip(';')
 
+    # See: https://pqina.nl/filepond/docs/patterns/api/server/
     if content_type == 'multipart/form-data':
         filename = request.files['filepond'].filename
         upload_path = request.headers['X-Uploadto']
@@ -89,6 +100,8 @@ def process():
         enforce_mapped(mapped_dirs, upload_path, True)
 
         s_entry = 'tmp_{}'.format(filepond_id)
+        # we want the filepond id number to persist between request contexts
+        # hence, the use of flask_session `session` object
         session[s_entry] = (filepond_id, upload_path, filename)
         upload_file = UploadedFile(filepond_id, upload_path, filename)
         upload_file.create_temporary()

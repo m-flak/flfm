@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% import "bootstrap/utils.html" as utils %}
 {% import "links.html" as links %}
+{% import "misc.html" as misc %}
+{% import "scripting.html" as script %}
 
 {% block metas -%}
     <meta charset="utf-8" />
     {{ super() }}
+{%- endblock %}
+
+{% block head -%}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/js-base64@2.5.1/base64.min.js"></script>
 {%- endblock %}
 
 {% block body -%}
@@ -42,7 +49,20 @@
   </div>
   <div class="fl-row">
       <div class="card full-card card-shadow j-center">
-          <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+          {% call misc.find_mimetype_part(mimetype, 'text') -%}
+            <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+          {%- endcall %}
+          {% call misc.find_mimetype_part(mimetype, 'image') -%}
+            <div id="viewer-contents">
+                {% if was_cacheable -%}
+                    {% if cache_id != -1 -%}
+                        <img class="viewer-image" alt="{{ current_file }}" src="{{ [url_for('viewer.fetch', cacheid=cache_id), '?mimetype=', mimetype]|join }}"/>
+                    {% else -%}
+                        <img class="viewer-image" alt="{{ current_file }}" />
+                    {%- endif %}
+                {%- endif %}
+            </div>
+          {%- endcall %}
       </div>
   </div>
  </div>

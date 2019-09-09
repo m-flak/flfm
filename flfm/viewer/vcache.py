@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import os
 from io import BytesIO, SEEK_SET, SEEK_END
 import operator
 import threading
@@ -16,6 +18,11 @@ class VCFile:
     def read_contents(self, **kwargs):
         encoding = kwargs.get('decode_as', '')
         if not len(encoding) == 0:
+            if 'none' in encoding or not encoding:
+                return self.buffer.getvalue()
+            elif 'base64' in encoding:
+                return base64.b64encode(self.buffer.getvalue())
+
             return self.buffer.getvalue().decode(encoding)
         return self.buffer.getvalue()
 
@@ -51,6 +58,11 @@ class ViewerCache:
 
     def finish_setup(self):
         self.cache = LFUCache(self.max_file_size*self.max_files, self.getsizeof)
+
+    def is_file_cacheable(self, filepath):
+        if os.stat(filepath).st_size > self.max_file_size:
+            return False
+        return True
 
     @cachedmethod(operator.attrgetter('cache'), hashkey,
                   operator.attrgetter('lock'))
