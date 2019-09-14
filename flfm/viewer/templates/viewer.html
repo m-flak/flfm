@@ -89,25 +89,64 @@
 {% block scripts -%}
 {{ super() }}
 {{ script.declare_string_var('flfm_root', g.available_vars.app_root) }}
+{{ script.declare_string_var('viewer_current_file', current_file) }}
 <script src="{{ url_for('static', filename='jquery.cacheImages.min.js') }}"></script>
 <script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
 <script type="text/javascript">
     /*<!CDATA[*/
+    let media_list = new Promise(function(resolve, reject) {
+        if (sessionStorage.getItem('MediaList')) {
+            var the_data = JSON.parse(sessionStorage.getItem('MediaList'));
+            resolve(the_data);
+        } else {
+            let wl = window.location;
+            $.ajax({
+                method: 'POST',
+                url: make_url(`${wl.protocol}//${wl.host}`, flfm_root, '/medialist'),
+                data: { directory: "{{ current_dir }}", whatkind: viewer_type }
+            }).done(function(d) {
+                sessionStorage.setItem('MediaList', JSON.stringify(d));
+                resolve(d);
+            });
+        }
+    });
+    const serve_url = "{{ url_for('shell.serve_file') }}";
     (function(t, c) {
         if (t === 'text') {
             return;
         }
-        if (c) {
-            return;
-        }
+        else if (t === 'image') {
+            if (!c) {
+                var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
+                image_url = image_url.trim();
+                image_url = image_url.replace(/&\w+;/, '&');
+                let wl = window.location;
+                var full_url = make_url(`${wl.protocol}//${wl.host}`, flfm_root, image_url);
+                $("img.viewer-image").cacheImages({url: full_url});
+            }
 
-        if (t === 'image') {
-            var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
-            image_url = image_url.trim();
-            image_url = image_url.replace(/&\w+;/, '&');
-            let wl = window.location;
-            var full_url = make_url(`${wl.protocol}//${wl.host}`, flfm_root, image_url);
-            $("img.viewer-image").cacheImages({url: full_url});
+            $("a#previous-file").on("click", function() {
+                media_list.then(function(the_list) {
+                    current = the_list.filter(e => e.cur === viewer_current_file);
+                    if (current[0].prev != null) {
+                        viewer_current_file = current[0].prev;
+                        let wl = window.location;
+                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
+                        $("img.viewer-image").cacheImages({url: new_url});
+                    }
+                });
+            });
+            $("a#next-file").on("click", function() {
+                media_list.then(function(the_list) {
+                    current = the_list.filter(e => e.cur === viewer_current_file);
+                    if (current[0].next != null) {
+                        viewer_current_file = current[0].next;
+                        let wl = window.location;
+                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
+                        $("img.viewer-image").cacheImages({url: new_url});
+                    }
+                });
+            });
         }
     })(viewer_type, viewer_srv_cache);
     //]]>

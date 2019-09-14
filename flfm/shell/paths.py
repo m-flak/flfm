@@ -34,10 +34,10 @@ class ShellFile(ShellItem):
         our_type = filetype.guess(self.path)
         if our_type is None:
             return False
-        if re.match(r"^{}".format(want_family), our_type) is not None:
+        if re.match(want_family, our_type.mime) is not None:
             return True
         return False
-    
+
 class ShellDirectory(ShellItem):
     directory = True
 

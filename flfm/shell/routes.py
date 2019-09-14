@@ -1,10 +1,11 @@
 import os
 import re
+import json
 import mimetypes
 import filetype
 from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
-    url_for, current_app
+    url_for, current_app, make_response
 )
 from flfm.misc import get_banner_string, make_arg_url
 from .paths import ShellPath
@@ -157,6 +158,6 @@ def medialist():
                                 this_path.files))
 
     the_medialist = list(gen_ml(matched_media))
-    resp = make_response(the_medialist)
+    resp = make_response(json.dumps(the_medialist))
     resp.mimetype = 'application/json'
     return resp
