@@ -9,11 +9,6 @@
     {{ super() }}
 {%- endblock %}
 
-{% block head -%}
-    {{ super() }}
-    <script src="https://cdn.jsdelivr.net/npm/js-base64@2.5.1/base64.min.js"></script>
-{%- endblock %}
-
 {% block body -%}
 <div id="layout">
  <div class="container">
@@ -51,6 +46,8 @@
       <div class="card full-card card-shadow j-center">
           {% call misc.find_mimetype_part(mimetype, 'text') -%}
             <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+            {{ script.declare_string_var('viewer_type', 'text') }}
+            {{ script.declare_literal_var('viewer_srv_cache', False) }}
           {%- endcall %}
           {% call misc.find_mimetype_part(mimetype, 'image') -%}
             <div id="viewer-contents">
@@ -59,13 +56,60 @@
                         <img class="viewer-image" alt="{{ current_file }}" src="{{ [url_for('viewer.fetch', cacheid=cache_id), '?mimetype=', mimetype]|join }}"/>
                     {% else -%}
                         <img class="viewer-image" alt="{{ current_file }}" />
+                        {%- set was_cacheable = False %}
                     {%- endif %}
+                {%- else -%}
+                    <img class="viewer-image" alt="{{ current_file }}" />
                 {%- endif %}
+                <div class="viewer-image-controls">
+                    <a href="#viewer-contents" id="previous-file" title="Previous Image...">
+                        <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
+                    </a>
+                    <a href="#viewer-contents" id="play-files" title="Play Slideshow...">
+                        <img src="{{ url_for('static', filename='flfm_play.gif') }}" />
+                    </a>
+                    <a href="#viewer-contents" id="stop-files" title="Stop Slideshow..." class="hidden invisible">
+                        <img src="{{ url_for('static', filename='flfm_stop.gif') }}" />
+                    </a>
+                    <a href="#viewer-contents" id="next-file" title="Next Image...">
+                        <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
+                    </a>
+                </div>
             </div>
+            {{ script.declare_string_var('viewer_type', 'image') }}
+            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
           {%- endcall %}
       </div>
   </div>
  </div>
 </div>
 {{ super() }}
+{%- endblock %}
+
+{% block scripts -%}
+{{ super() }}
+{{ script.declare_string_var('flfm_root', g.available_vars.app_root) }}
+<script src="{{ url_for('static', filename='jquery.cacheImages.min.js') }}"></script>
+<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
+<script type="text/javascript">
+    /*<!CDATA[*/
+    (function(t, c) {
+        if (t === 'text') {
+            return;
+        }
+        if (c) {
+            return;
+        }
+
+        if (t === 'image') {
+            var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
+            image_url = image_url.trim();
+            image_url = image_url.replace(/&\w+;/, '&');
+            let wl = window.location;
+            var full_url = make_url(`${wl.protocol}//${wl.host}`, flfm_root, image_url);
+            $("img.viewer-image").cacheImages({url: full_url});
+        }
+    })(viewer_type, viewer_srv_cache);
+    //]]>
+</script>
 {%- endblock %}

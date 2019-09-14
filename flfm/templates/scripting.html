@@ -4,6 +4,13 @@
     </script>
 {%- endmacro %}
 
+{% macro declare_literal_var(var_name, var_value) -%}
+    {%- set literal_val = var_value|string() %}
+    <script type="text/javascript">
+        var {{ var_name }} = {{ literal_val|lower() }};
+    </script>
+{%- endmacro %}
+
 {# The following macro requires base64.js, Be sure to include it! #}
 {# It's on jsdelivr as `js-base64` #}
 {% macro declare_blob_from_b64(blob_name, base64_data, mimetype='') -%}

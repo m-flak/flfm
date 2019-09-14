@@ -125,3 +125,38 @@ def process():
         return 'SUCCESS'
 
     return ''
+
+@shell.route('/medialist', methods=['POST'])
+@needs_rules
+def medialist():
+    def gen_ml(dem_files):
+        for i, shellfile in enumerate(dem_files):
+            prev, cur, next = None, None, None
+            cur = shellfile.path
+            if i > 0:
+                prev = dem_files[i-1].path
+            if i+1 < len(dem_files):
+                next = dem_files[i+1].path
+            yield dict({
+                        'prev': prev,
+                        'cur': cur,
+                        'next': next,
+            })
+    #       #       #       #       #       #
+    where_at = request.form.get('directory', None)
+    what_kind = request.form.get('whatkind', None)
+
+    if where_at is None or what_kind is None:
+        abort(400)
+
+    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
+    enforce_mapped(mapped_dirs, where_at)
+
+    this_path = ShellPath(where_at, mapped_dirs)
+    matched_media = list(filter(lambda f: f.is_mimetype_family(what_kind),
+                                this_path.files))
+
+    the_medialist = list(gen_ml(matched_media))
+    resp = make_response(the_medialist)
+    resp.mimetype = 'application/json'
+    return resp

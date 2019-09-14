@@ -23,3 +23,13 @@
         </a>
     {%- endif %}
 {% endmacro -%}
+
+{% macro shell_file_raw_link(shell_view, file_path, force_dl=False) -%}
+    {%- set urlified_path = file_path|e|urlencode() %}
+    {%- set file_url = url_for(shell_view) %}
+    {% if force_dl -%}
+        {{ [file_url, '?f=', urlified_path, '&dl=1']|join }}
+    {%- else -%}
+        {{ [file_url, '?f=', urlified_path]|join }}
+    {%- endif %}
+{% endmacro -%}

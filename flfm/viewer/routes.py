@@ -11,6 +11,7 @@ viewer = Blueprint('viewer', __name__, template_folder='templates')
 @viewer.before_request
 def make_vars_available():
     g.available_vars = {
+        'app_root': current_app.config.get('APPLICATION_ROOT', '/'),
         'banner_string': get_banner_string(current_app),
     }
 

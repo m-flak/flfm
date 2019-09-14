@@ -1,4 +1,6 @@
 from pathlib import Path
+import re
+import filetype
 
 class ShellItem:
     file = False
@@ -22,6 +24,20 @@ class ShellFile(ShellItem):
     def __init__(self, path_obj):
         super().__init__(path_obj)
 
+    def is_mimetype(self, want_type):
+        our_type = filetype.guess(self.path)
+        if our_type == want_type:
+            return True
+        return False
+
+    def is_mimetype_family(self, want_family):
+        our_type = filetype.guess(self.path)
+        if our_type is None:
+            return False
+        if re.match(r"^{}".format(want_family), our_type) is not None:
+            return True
+        return False
+    
 class ShellDirectory(ShellItem):
     directory = True
 

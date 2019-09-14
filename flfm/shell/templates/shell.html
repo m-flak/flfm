@@ -168,25 +168,12 @@
 <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
 {%- if cwd_mapping.dir_allowuploads %}
 <script src="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.js"></script>
+{# include file for `make_url` #}
+<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
 <script type="text/javascript">
     /*<!CDATA[*/
     function make_error_alert(error_string) {
         $("#uploadModalAlerts").append(`<div class='alert alert-danger' role='alert'>${error_string}</div>`);
-    }
-    function make_url(url_base, root, uri) {
-        if (root.endsWith('/') && uri.startsWith('/')) {
-            var new_uri = uri.replace(/^\//,' ').trim()
-            if (url_base != null) {
-                return `${url_base}${root}${new_uri}`;
-            }
-            else {
-                return `${root}${new_uri}`;
-            }
-        }
-        if (!url_base) {
-            return `${root}${uri}`;
-        }
-        return `${url_base}${root}${uri}`;
     }
     var fp_object = null;
     var ul_finished = false;
