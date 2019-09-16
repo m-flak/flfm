@@ -1,19 +1,26 @@
 function make_url(url_base, root, uri) {
-    if (root.endsWith('/') && uri.startsWith('/')) {
+    var the_root = root;
+    if (root.length > 1 || root !== '/') {
+        if (uri.startsWith(root)) {
+            the_root = '/';
+        }
+    }
+    if (the_root.endsWith('/') && uri.startsWith('/')) {
         var new_uri = uri.replace(/^\//,' ').trim()
         if (url_base != null) {
-            return `${url_base}${root}${new_uri}`;
+            return `${url_base}${the_root}${new_uri}`;
         }
         else {
-            return `${root}${new_uri}`;
+            return `${the_root}${new_uri}`;
         }
     }
     if (!url_base) {
-        return `${root}${uri}`;
+        return `${the_root}${uri}`;
     }
-    return `${url_base}${root}${uri}`;
+    return `${url_base}${the_root}${uri}`;
 }
 
 function serve_params(serve_url, the_file) {
     return `${serve_url}?f=${the_file}&dl=1`;
 }
+
