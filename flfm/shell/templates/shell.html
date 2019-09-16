@@ -149,6 +149,15 @@
                     <input type="radio" name="viewer" id="viewerEnabled" value="enabled" />
                     <label for="viewerEnabled">Enabled</label>
                 </form>
+                <br/>
+                <h5>Slideshow Settings:</h5>
+                <p>Slideshow functionality is a feature of the built-in viewer.
+                    These are variables you can tweak to alter its behavior.
+                </p>
+                <form id="settingsModalForm-2">
+                    <input type="text" name="delay" id="slideshowDelay" maxlength="7" />
+                    <label for="slideshowDelay">Slideshow Delay (in ms)</label>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -260,6 +269,13 @@
                 }
             }
         }
+        var slideshow_delay = localStorage.getItem('slideshowDelay') || 5000;
+        slideshow_delay = Number(slideshow_delay);
+        $(e.currentTarget).find("form#settingsModalForm-2").children().each(function(i,e) {
+            if (e.id === 'slideshowDelay') {
+                $(this).val(slideshow_delay);
+            }
+        });
     });
     $("#settingsModalApplyButton").on("click", function() {
         let vform = $("#settingsModal").find("form#settingsModalForm-1").get(0);
@@ -276,6 +292,13 @@
             Cookies.remove('flfm_viewer');
         }
         Cookies.set('flfm_viewer', viewer_new_val);
+
+        $("#settingsModal").find("form#settingsModalForm-2").children().each(function(i,e) {
+            if (e.id === 'slideshowDelay') {
+                var value = $(this).val();
+                localStorage.setItem('slideshowDelay', value);
+            }
+        });
     });
     //]]>
 </script>
@@ -297,6 +320,13 @@
                 }
             }
         }
+        var slideshow_delay = localStorage.getItem('slideshowDelay') || 5000;
+        slideshow_delay = Number(slideshow_delay);
+        $(e.currentTarget).find("form#settingsModalForm-2").children().each(function(i,e) {
+            if (e.id === 'slideshowDelay') {
+                $(this).val(slideshow_delay);
+            }
+        });
     });
     $("#settingsModalApplyButton").on("click", function() {
         let vform = $("#settingsModal").find("form#settingsModalForm-1").get(0);
@@ -313,6 +343,13 @@
             Cookies.remove('flfm_viewer');
         }
         Cookies.set('flfm_viewer', viewer_new_val);
+
+        $("#settingsModal").find("form#settingsModalForm-2").children().each(function(i,e) {
+            if (e.id === 'slideshowDelay') {
+                var value = $(this).val();
+                localStorage.setItem('slideshowDelay', value);
+            }
+        });
     });
     //]]>
 </script>
