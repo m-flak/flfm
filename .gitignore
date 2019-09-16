@@ -1,6 +1,7 @@
 *.pyc
 flfm/secret.key
 .env
+banner
 rules
 flfmenv/*
 flask_session/*

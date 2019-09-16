@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% import "bootstrap/utils.html" as utils %}
 {% import "links.html" as links %}
+{% import "misc.html" as misc %}
+{% import "scripting.html" as script %}
 
 {% block metas -%}
     <meta charset="utf-8" />
@@ -12,7 +14,7 @@
  <div class="container">
   <div class="fl-row">
       <div class="card full-card clear-card j-center">
-          <h1>Flask File Manager</h1>
+          <h1>{{ g.available_vars.banner_string }}</h1>
       </div>
   </div>
   {% set flashies = get_flashed_messages(with_categories=True) -%}
@@ -42,10 +44,157 @@
   </div>
   <div class="fl-row">
       <div class="card full-card card-shadow j-center">
-          <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+          {% call misc.find_mimetype_part(mimetype, 'text') -%}
+            <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+            {{ script.declare_string_var('viewer_type', 'text') }}
+            {{ script.declare_literal_var('viewer_srv_cache', False) }}
+          {%- endcall %}
+          {% call misc.find_mimetype_part(mimetype, 'image') -%}
+            <div id="viewer-contents">
+                {% if was_cacheable -%}
+                    {% if cache_id != -1 -%}
+                        <img class="viewer-image" alt="{{ current_file }}" src="{{ [url_for('viewer.fetch', cacheid=cache_id), '?mimetype=', mimetype]|join }}"/>
+                    {% else -%}
+                        <img class="viewer-image" alt="{{ current_file }}" />
+                        {%- set was_cacheable = False %}
+                    {%- endif %}
+                {%- else -%}
+                    <img class="viewer-image" alt="{{ current_file }}" />
+                {%- endif %}
+                <div class="viewer-image-controls">
+                    <a href="#viewer-contents" id="previous-file" title="Previous Image...">
+                        <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
+                    </a>
+                    <a href="#viewer-contents" id="play-files" title="Play Slideshow...">
+                        <img src="{{ url_for('static', filename='flfm_play.gif') }}" />
+                    </a>
+                    <a href="#viewer-contents" id="stop-files" title="Stop Slideshow..." class="hidden invisible">
+                        <img src="{{ url_for('static', filename='flfm_stop.gif') }}" />
+                    </a>
+                    <a href="#viewer-contents" id="next-file" title="Next Image...">
+                        <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
+                    </a>
+                </div>
+            </div>
+            {{ script.declare_string_var('viewer_type', 'image') }}
+            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+          {%- endcall %}
       </div>
   </div>
  </div>
 </div>
 {{ super() }}
+{%- endblock %}
+
+{% block scripts -%}
+{{ super() }}
+{{ script.declare_string_var('flfm_root', g.available_vars.app_root) }}
+{{ script.declare_string_var('viewer_current_file', current_file) }}
+<script src="{{ url_for('static', filename='jquery.cacheImages.min.js') }}"></script>
+<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
+<script type="text/javascript">
+    /*<!CDATA[*/
+    let media_list = new Promise(function(resolve, reject) {
+        if (sessionStorage.getItem('MediaList')) {
+            var the_data = JSON.parse(sessionStorage.getItem('MediaList'));
+            resolve(the_data);
+        } else {
+            let wl = window.location;
+            $.ajax({
+                method: 'POST',
+                url: make_url(`${wl.protocol}//${wl.host}`, flfm_root, '/medialist'),
+                data: { directory: "{{ current_dir }}", whatkind: viewer_type }
+            }).done(function(d) {
+                sessionStorage.setItem('MediaList', JSON.stringify(d));
+                resolve(d);
+            });
+        }
+    });
+    const serve_url = "{{ url_for('shell.serve_file') }}";
+    var slideshow_playing = false;
+    var slideshow_timeout;
+    function next_image() {
+        if (slideshow_playing) {
+            media_list.then(function(the_list) {
+                current = the_list.filter(e => e.cur === viewer_current_file);
+                if (current[0].next == null) {
+                    viewer_current_file = the_list[0].cur;
+                } else {
+                    viewer_current_file = current[0].next;
+                }
+                let wl = window.location;
+                var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
+                $("img.viewer-image").cacheImages({url: new_url});
+                $(document).trigger("slideshowEvent");
+            });
+        }
+    }
+    (function(t, c) {
+        if (t === 'text') {
+            return;
+        }
+        else if (t === 'image') {
+            if (!c) {
+                var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
+                image_url = image_url.trim();
+                image_url = image_url.replace(/&\w+;/, '&');
+                let wl = window.location;
+                var full_url = make_url(`${wl.protocol}//${wl.host}`, flfm_root, image_url);
+                $("img.viewer-image").cacheImages({url: full_url});
+            }
+
+            $(document).on("slideshowEvent", function() {
+                var slideshow_delay = localStorage.getItem('slideshowDelay') || 5000;
+                slideshow_delay = Number(slideshow_delay);
+                slideshow_playing = true;
+                slideshow_timeout = window.setTimeout(next_image, slideshow_delay);
+            });
+            $("a#previous-file").on("click", function() {
+                media_list.then(function(the_list) {
+                    current = the_list.filter(e => e.cur === viewer_current_file);
+                    if (current[0].prev != null) {
+                        viewer_current_file = current[0].prev;
+                        let wl = window.location;
+                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
+                        $("img.viewer-image").cacheImages({url: new_url});
+                    }
+                });
+            });
+            $("a#next-file").on("click", function() {
+                media_list.then(function(the_list) {
+                    current = the_list.filter(e => e.cur === viewer_current_file);
+                    if (current[0].next != null) {
+                        viewer_current_file = current[0].next;
+                        let wl = window.location;
+                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
+                        $("img.viewer-image").cacheImages({url: new_url});
+                    }
+                });
+            });
+            $("a#play-files").on("click", function(e) {
+                const classes = 'hidden invisible';
+                let this_button = $(e.currentTarget);
+
+                this_button.toggleClass(classes);
+                $("a#stop-files").toggleClass(classes);
+                $(document).trigger("slideshowEvent");
+            });
+            $("a#stop-files").on("click", function(e) {
+                const classes = 'hidden invisible';
+                let this_button = $(e.currentTarget);
+
+                this_button.toggleClass(classes);
+                $("a#play-files").toggleClass(classes);
+                slideshow_playing = false;
+                if (typeof slideshow_playing !== 'undefined') {
+                    if (slideshow_playing != -1) {
+                        window.clearTimeout(slideshow_timeout);
+                        slideshow_timeout = -1;
+                    }
+                }
+            });
+        }
+    })(viewer_type, viewer_srv_cache);
+    //]]>
+</script>
 {%- endblock %}

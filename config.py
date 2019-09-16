@@ -2,6 +2,8 @@ import os
 from flask_dotenv import DotEnv
 
 class Config:
+    BANNER = 'Flask File Manager'
+    BANNER_TYPE = 'string'
     SESSION_TYPE = 'filesystem'
     SESSION_USE_SIGNER = True
     SESSION_KEY_PREFIX = 'flfm-session:'

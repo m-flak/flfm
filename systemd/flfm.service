@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance for flfm
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/flfm
+Environment="PATH=/var/www/flfm/flfmenv/bin"
+ExecStart=/var/www/flfm/flfmenv/bin/gunicorn --bind 127.0.0.1:9197 run:app
+
+[Install]
+WantedBy=multi-user.target
+

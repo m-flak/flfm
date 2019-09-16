@@ -1,0 +1,16 @@
+{# USE FIND_MIMETYPE_PART WITH A CALL BLOCK #}
+{# part is like this 'text'/'plain-text', 0 is left and 1 is right #}
+
+{% macro find_mimetype_part(mimetype, what, part=0) -%}
+    {%- set found_what = namespace(found=False) %}
+    {%- for mime_part in mimetype.split('/') %}
+        {% if loop.index0 == part -%}
+            {%- if what == mime_part %}
+                {%- set found_what.found = True %}
+            {% endif -%}
+        {%- endif %}
+    {% endfor -%}
+    {% if found_what.found -%}
+        {{ caller() }}
+    {%- endif %}
+{%- endmacro %}
