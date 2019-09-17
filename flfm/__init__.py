@@ -42,7 +42,7 @@ def create_app(config_object):
 
     root = app.config.get('APPLICATION_ROOT', '/')
     app.register_blueprint(shell, url_prefix=format_root(root=root))
-    app.register_blueprint(viewer, url_prefix=format_root('/viewer/',root=root))
+    app.register_blueprint(viewer, url_prefix=format_root('/viewer/', root=root))
 
     if root != '/':
         app.add_url_rule(format_root(root=root), app_route.__name__, app_route)

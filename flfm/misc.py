@@ -11,7 +11,7 @@ def get_banner_string(app):
     banner_type = app.config['BANNER_TYPE']
     banner_val = banner
 
-    if banner_type != 'string' and banner_type != 'file':
+    if banner_type not in ('string', 'file'):
         raise ValueError
 
     if banner_type == 'file':

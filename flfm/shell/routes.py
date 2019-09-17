@@ -18,8 +18,8 @@ def make_filepond_id():
     return ord(os.urandom(1))<<16|ord(os.urandom(1))<<8|ord(os.urandom(1))<<4|ord(os.urandom(1))
 
 def is_viewable_mimetype(mimetype):
-    conditions = [ re.match('text/', mimetype) is not None,
-                   re.match('image/', mimetype) is not None ]
+    conditions = [re.match('text/', mimetype) is not None,
+                  re.match('image/', mimetype) is not None]
 
     for c in conditions:
         if c:
@@ -139,9 +139,9 @@ def medialist():
             if i+1 < len(dem_files):
                 next = dem_files[i+1].path
             yield dict({
-                        'prev': prev,
-                        'cur': cur,
-                        'next': next,
+                'prev': prev,
+                'cur': cur,
+                'next': next,
             })
     #       #       #       #       #       #
     where_at = request.form.get('directory', None)

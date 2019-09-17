@@ -75,13 +75,13 @@ class MappedDirectory:
         self._dir_allowuploads = dir_allowuploads
 
     @classmethod
-    def create_from_mapping(self, mapping, path_key):
+    def create_from_mapping(cls, mapping, path_key):
         try:
             allowed, allowuploads = mapping.get(path_key)
         except TypeError:
             allowed, allowuploads = False, False
 
-        return self(path_key, allowed, allowuploads)
+        return cls(path_key, allowed, allowuploads)
 
     @property
     def dir_path(self):
@@ -124,7 +124,7 @@ class MappedDirectories(collections.abc.Mapping):
         self.D = some_dict
 
     @classmethod
-    def from_rules(self, rules):
+    def from_rules(cls, rules):
         rule_dict = dict()
 
         if rules.num_rules > 0:
@@ -151,7 +151,7 @@ class MappedDirectories(collections.abc.Mapping):
                 else:
                     continue
 
-        return self(rule_dict)
+        return cls(rule_dict)
 
     def __getitem__(self, key):
         return self.D.get(key)
