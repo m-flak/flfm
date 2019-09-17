@@ -132,16 +132,16 @@ def process():
 def medialist():
     def gen_ml(dem_files):
         for i, shellfile in enumerate(dem_files):
-            prev, cur, next = None, None, None
+            prev, cur, nxt = None, None, None
             cur = shellfile.path
             if i > 0:
                 prev = dem_files[i-1].path
             if i+1 < len(dem_files):
-                next = dem_files[i+1].path
+                nxt = dem_files[i+1].path
             yield dict({
                 'prev': prev,
                 'cur': cur,
-                'next': next,
+                'next': nxt,
             })
     #       #       #       #       #       #
     where_at = request.form.get('directory', None)

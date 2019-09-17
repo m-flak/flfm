@@ -4,6 +4,7 @@ import re
 from functools import wraps
 from werkzeug.datastructures import MultiDict
 from flask import current_app, g, flash, abort
+from .paths import ShellDirectory
 
 # Generate (key, value) tuples from the rules file
 def read_rules_file(rule_file):
@@ -119,6 +120,9 @@ class MappedDirectory:
             return True
         return False
 
+    def as_shell(self):
+        return ShellDirectory.from_str_loc(self.dir_path)
+
 class MappedDirectories(collections.abc.Mapping):
     def __init__(self, some_dict):
         self.D = some_dict
@@ -155,6 +159,13 @@ class MappedDirectories(collections.abc.Mapping):
 
     def __getitem__(self, key):
         return self.D.get(key)
+
+    def __setitem__(self, key, item):
+        if isinstance(item, MappedDirectory):
+            new_item = (item.dir_allowed, item.dir_allowuploads)
+            self.D[key] = new_item
+            return
+        self.D[key] = item
 
     def __len__(self):
         return len(self.D)

@@ -17,6 +17,9 @@ class ShellItem:
         self.uri_path = self.path[1:len(self.path)]
         self.size = path_obj.lstat().st_size
 
+    def parent_directory(self):
+        before_name = self.path.index(self.name)
+        return self.path[0:before_name].rstrip('/')
 
 class ShellFile(ShellItem):
     file = True
@@ -44,6 +47,11 @@ class ShellDirectory(ShellItem):
     def __init__(self, path_obj):
         super().__init__(path_obj)
 
+    @classmethod
+    def from_str_loc(cls, str_location):
+        path_object = Path(str_location)
+        return cls(path_object)
+
 class ShellPath:
     def __init__(self, path_string, dir_mappings=None):
         def get_files(dirs):
@@ -70,6 +78,8 @@ class ShellPath:
         # Directories followed by files
         self.children = self.directories + self.files
 
+        # So far, this used to let us get the allow/disallow properties from
+        ## jinja
         self.mapping = None
         if dir_mappings is not None:
             if len(dir_mappings) > 0:
