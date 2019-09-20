@@ -2,5 +2,6 @@ Flask
 Flask-Bootstrap
 Flask-DotEnv
 Flask-Session
+Flask-Testing
 filetype
 cachetools
