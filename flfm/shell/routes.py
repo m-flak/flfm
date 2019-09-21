@@ -53,7 +53,8 @@ def shell_default():
 @needs_rules
 def shell_view(view_path):
     view_path_fixed = '/{}'.format(view_path)
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
+    mapped_dirs = MappedDirectories.from_shell_path(ShellPath(view_path_fixed)).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
     enforce_mapped(mapped_dirs, view_path_fixed)
 
     shell_path = ShellPath(view_path_fixed, mapped_dirs)
