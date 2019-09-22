@@ -55,6 +55,9 @@ By default, all paths are non-traversable. If you want a path on your server to 
 
 You can explicitly restrict subdirectories within an allowed directory by specifying a **Disallowed** rule with the fully-qualified path to that subdirectory.
 
+###### Nesting:
+When it comes to the nesting of rules, **do not** nest an _Allowed_ rule in a _Disallowed_ rule's directory tree. There's no reason to do this, for Flask File Manager will not allow access to files or directories by default in the absence of rules.
+
 *Please note that all of these rules apply only to directories &amp; files that are accessible by the WSGI server's _uid/gid_.*
 
 **Explanation:**<br/>
