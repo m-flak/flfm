@@ -41,7 +41,6 @@ def needs_rules(needing_method):
         if not hasattr(g, 'fm_rules'):
             g.fm_rules = Rules(rules_file)
         if rules_file is None or g.fm_rules.num_rules == 0:
-            flash('There are no rules restricting Flask FM!', 'danger')
             flash('Please properly configure Flask FM before using.', 'danger')
 
         return needing_method(*args, **kwargs)

@@ -49,11 +49,13 @@ The rules file is plain text and does not support comments. Here is an example:
 ```
 Allowed=/var/www/public
 Disallowed=/var/www/public/private
-Allowed=/var/www/public/private/not-private
 AllowUploads=/var/www/public/incoming
 ```
-By default, in the presence of a rules file, only directories &amp; subdirectories of an _allow rule_ can be traversed. Likewise, the directories &amp; subdirectories of a _disallow rule_ are restricted. If you wish to allow flfm access into a specific folder within a restricted subtree, you can explicitly supply an _allow rule_, which will allow a user to browse that directory **and only that directory**.
-Please note that all of these rules apply only to directories &amp; files that are accessible by the WSGI server's _uid/gid_.
+By default, all paths are non-traversable. If you want a path on your server to be accessible, you'll need to add an **Allowed** rule.
+
+You can explicitly restrict subdirectories within an allowed directory by specifying a **Disallowed** rule with the fully-qualified path to that subdirectory.
+
+*Please note that all of these rules apply only to directories &amp; files that are accessible by the WSGI server's _uid/gid_.*
 
 **Explanation:**<br/>
 ```Allowed=/path/to/foo``` - _give flfm access to this dir_<br/>
