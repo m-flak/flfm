@@ -1,5 +1,6 @@
 *.pyc
 flfm/secret.key
+flfm/tests/samples/sample_rules
 .env
 banner
 rules

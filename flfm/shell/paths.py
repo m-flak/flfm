@@ -76,10 +76,16 @@ class ShellPath:
 
         self.path = Path(path_string)
         self.str_path = path_string
-        self.files = [ShellFile(file) for file in get_files(self.path.iterdir())]
-        self.directories = [ShellDirectory(dir) for dir in get_dirs(self.path.iterdir())]
-        # Directories followed by files
-        self.children = self.directories + self.files
+        
+        if self.path.exists():
+            self.files = [ShellFile(file) for file in get_files(self.path.iterdir())]
+            self.directories = [ShellDirectory(dir) for dir in get_dirs(self.path.iterdir())]
+            # Directories followed by files
+            self.children = self.directories + self.files
+        else:
+            self.files = []
+            self.directories = []
+            self.children = []
 
         # So far, this used to let us get the allow/disallow properties from
         ## jinja

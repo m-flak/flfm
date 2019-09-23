@@ -89,7 +89,6 @@ def serve_file():
 @shell.route('/process', methods=['POST'])
 @needs_rules
 def process():
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
     content_type = re.search(r"^.+;",
                              request.headers['Content-Type']).group(0).strip(';')
 
@@ -98,6 +97,8 @@ def process():
         filename = request.files['filepond'].filename
         upload_path = request.headers['X-Uploadto']
         filepond_id = make_filepond_id()
+        mapped_dirs = MappedDirectories.from_shell_path(ShellPath(upload_path)).\
+                      apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
         enforce_mapped(mapped_dirs, upload_path, True)
 
         s_entry = 'tmp_{}'.format(filepond_id)
