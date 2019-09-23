@@ -7,15 +7,12 @@ from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
     url_for, current_app, make_response
 )
-from flfm.misc import get_banner_string, make_arg_url
+from flfm.misc import get_banner_string, make_arg_url, make_filepond_id
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
 from .uploads import UploadedFile
 
 shell = Blueprint('shell', __name__, template_folder='templates')
-
-def make_filepond_id():
-    return ord(os.urandom(1))<<16|ord(os.urandom(1))<<8|ord(os.urandom(1))<<4|ord(os.urandom(1))
 
 def is_viewable_mimetype(mimetype):
     conditions = [re.match('text/', mimetype) is not None,
@@ -65,9 +62,11 @@ def shell_view(view_path):
 @shell.route('/serve')
 @needs_rules
 def serve_file():
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
     input_file = request.args['f']
-    enforce_mapped(mapped_dirs, os.path.dirname(input_file))
+    input_dir = os.path.dirname(input_file)
+    mapped_dirs = MappedDirectories.from_shell_path(ShellPath(input_dir)).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
+    enforce_mapped(mapped_dirs, input_dir)
 
     mimetype = mimetypes.guess_type(input_file)[0]
     if mimetype is None:

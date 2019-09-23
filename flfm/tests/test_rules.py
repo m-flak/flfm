@@ -1,4 +1,5 @@
 import pathlib
+import random
 import tempfile
 import werkzeug.exceptions
 from flask import current_app, url_for
@@ -119,4 +120,141 @@ class RulesTest(TestConfig, TestCase):
         path = temp_path
         response = self.client.get(url_for('shell.shell_view', view_path=path.lstrip('/')))
         print(path)
+        self.assert403(response)
+
+    def test_without_rules(self):
+        rules_file = current_app.config['RULES_FILE']
+        current_app.config['RULES_FILE'] = None
+        assert current_app.config['RULES_FILE'] is None
+
+        blank_rules = Rules(None)
+        rule_mapping = MappedDirectories.from_rules(blank_rules)
+
+        temp_path = ShellDirectory(pathlib.Path(tempfile.gettempdir())).path
+        temp_shell_path = ShellPath(temp_path)
+
+        #
+        # APPLYING AN EMPTY RULE MAP
+        #
+        print("\n\nTEST apply_rule_map WITH EMPTY RULES.\n")
+        print("Applying empty rule map to: {}".format(temp_path))
+        temp_mapping = MappedDirectories.from_shell_path(temp_shell_path).\
+                       apply_rule_map(rule_mapping)
+
+        #
+        # ENFORCE_MAPPED W/O RULES
+        #
+        print("\n\nTEST enforce_mapped() METHOD W/O RULES:\n")
+        print("On: {}".format(temp_path))
+        with self.assertRaises(werkzeug.exceptions.Forbidden):
+            enforce_mapped(temp_mapping, temp_path)
+
+        #
+        # TESTING URL ROUTES FROM `shell`
+        #
+        print("\n\nTEST WEB INTERFACE W/O RULES:\n")
+        print("On: {}".format(temp_path))
+        path = temp_path
+        response = self.client.get(url_for('shell.shell_view', view_path=path.lstrip('/')))
+        self.assert403(response)
+
+        print("\nLoading 'default.html'...")
+        response = self.client.get(url_for('shell.shell_default'))
+        self.assert200(response)
+
+        # restore RULES_FILE to initial
+        current_app.config['RULES_FILE'] = rules_file
+        assert current_app.config['RULES_FILE'] is rules_file
+
+    def test_serve_rules(self):
+        rules_file = current_app.config['RULES_FILE']
+        the_rules = Rules(rules_file)
+        rule_mapping = MappedDirectories.from_rules(the_rules)
+
+        allowed_path = None
+        disallowed_path = None
+
+        for md in rule_mapping:
+            if allowed_path is None and md.dir_allowed:
+                allowed_path = ShellPath(md.dir_path)
+                if not allowed_path.files:
+                    del allowed_path
+                    allowed_path = None
+            if disallowed_path is None and not md.dir_allowed:
+                disallowed_path = ShellPath(md.dir_path)
+                if not disallowed_path.files:
+                    del disallowed_path
+                    disallowed_path = None
+            if allowed_path is not None and disallowed_path is not None:
+                break
+
+        total_a_files = len(allowed_path.files)
+        total_d_files = len(disallowed_path.files)
+        the_a_file = allowed_path.files[random.randint(0, total_a_files-1)]
+        the_d_file = disallowed_path.files[random.randint(0, total_d_files-1)]
+
+        #
+        # TEST PERMISSIONS WITH THE SERVE URL ROUTE
+        #
+        print("\n\nTEST SERVING FILES:\n")
+        print("Serving allowed file: {}".format(the_a_file.path))
+        the_url = url_for('shell.serve_file')
+        response = self.client.get(the_url,
+                                   query_string=dict(f=the_a_file.path))
+        self.assert200(response)
+        print("\nServing disallowed file: {}".format(the_d_file.path))
+        response = self.client.get(the_url,
+                                   query_string=dict(f=the_d_file.path))
+        self.assert403(response)
+
+        # # NOW, TEST WITH FILES WITHIN SUBDIRECTORIES
+
+        total_a_dirs = len(allowed_path.directories)
+        total_d_dirs = len(disallowed_path.directories)
+        try:
+        # random allowed subdirectory
+            a_dir = [(lambda i=i, k=k: k if i == random.randint(0, total_a_dirs-1)
+                      else None)() for i, k in enumerate(allowed_path.directories)]
+            a_dir = list(filter(lambda x: x is not None, a_dir)).pop().to_shell_path()
+        # random disallowed subdirectory
+            d_dir = [(lambda i=i, k=k: k if i == random.randint(0, total_d_dirs-1)
+                      else None)() for i, k in enumerate(disallowed_path.directories)]
+            d_dir = list(filter(lambda x: x is not None, d_dir)).pop().to_shell_path()
+        # OOPs. We can't find a decent random directory
+        except (IndexError, PermissionError, ValueError):
+            for subdirectory in allowed_path.directories:
+                try:
+                    as_sp = subdirectory.to_shell_path()
+                    if as_sp.has_files:
+                        a_dir = as_sp
+                except PermissionError:
+                    continue
+            for subdirectory in disallowed_path.directories:
+                try:
+                    as_sp = subdirectory.to_shell_path()
+                    if as_sp.has_files:
+                        d_dir = as_sp
+                except PermissionError:
+                    continue
+
+        total_a_files = len(a_dir.files)
+        total_d_files = len(d_dir.files)
+        try:
+            the_a_file = a_dir.files[random.randint(0, total_a_files-1)]
+        except ValueError:
+            the_a_file = a_dir.files[0]
+        try:
+            the_d_file = d_dir.files[random.randint(0, total_d_files-1)]
+        except ValueError:
+            the_d_file = d_dir.files[0]
+
+        print("\nServing allowed file from subdirectory...")
+        print(the_a_file.path)
+        response = self.client.get(the_url,
+                                   query_string=dict(f=the_a_file.path))
+        self.assert200(response)
+        print("\nServing disallowed file from subdirectory...")
+        print(the_d_file.path)
+        response = self.client.get(the_url,
+                                   query_string=dict(f=the_d_file.path))
         self.assert403(response)

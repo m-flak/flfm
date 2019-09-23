@@ -52,6 +52,9 @@ class ShellDirectory(ShellItem):
         path_object = Path(str_location)
         return cls(path_object)
 
+    def to_shell_path(self):
+        return ShellPath(self.path)
+
 class ShellPath:
     def __init__(self, path_string, dir_mappings=None):
         def get_files(dirs):
@@ -84,3 +87,15 @@ class ShellPath:
         if dir_mappings is not None:
             if len(dir_mappings) > 0:
                 self.mapping = dir_mappings.get_mapped_dir(self.str_path)
+
+    @property
+    def has_files(self):
+        if not self.files:
+            return False
+        return True
+
+    @property
+    def has_subdirectories(self):
+        if not self.directories:
+            return False
+        return True

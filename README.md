@@ -13,6 +13,7 @@ Flask File Manager (flfm) is a WSGI application written in Python.
 * [Configuring flfm](#configuring-flfm)<br/>1. [.env file](#dotenv-file)<br/>2. [rules file](#rules-file)
 * [Before Using flfm](#before-using-flfm)
 * [Deploying flfm](#deploying-flfm)
+* [Running Tests](#running-tests)
 * [Special Thanks](#special-thanks)
 
 ### Configuring flfm
@@ -76,6 +77,16 @@ Refer to the example systemd service file in _systemd/flfm.service_.
 You'll be able to start flfm as a service with ```systemctl```.
 
 For a tutorial concerning this, [check out this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-16-04).
+
+### Running Tests
+If you wish to run the tests for yourself, ensure that you have created a [.env file](#dotenv-file) pointing to a sample [rules file](#rules-file).
+
+You'll also want to ensure that you have the appropriate directory tree structure to run the tests against as well.
+
+Then, from the project root directory, simply execute:
+```
+python tests.py
+```
 
 ### Special Thanks
 Special thanks go out to the following javascript libraries not listed in the project's dependencies:
