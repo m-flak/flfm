@@ -186,8 +186,8 @@
                 this_button.toggleClass(classes);
                 $("a#play-files").toggleClass(classes);
                 slideshow_playing = false;
-                if (typeof slideshow_playing !== 'undefined') {
-                    if (slideshow_playing != -1) {
+                if (typeof slideshow_timeout !== 'undefined') {
+                    if (slideshow_timeout != -1) {
                         window.clearTimeout(slideshow_timeout);
                         slideshow_timeout = -1;
                     }

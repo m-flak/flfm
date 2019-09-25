@@ -2,7 +2,7 @@ import os
 import werkzeug.exceptions
 from flask import current_app, url_for
 from flask_testing import TestCase
-from flfm import create_app, format_root
+from flfm import create_app
 from flfm.misc import make_filepond_id
 from flfm.shell.paths import ShellDirectory
 from flfm.shell.uploads import UploadedFile
@@ -39,9 +39,11 @@ class UploadsTest(TestConfig, TestCase):
         rule_contents = 'Allowed={0}\nAllowUploads={0}'.\
                         format(self.test_rule_dir)
 
-        if not os.path.exists(self.sample_rules):
-            with open(self.sample_rules, 'w') as f:
-                f.write(rule_contents)
+        if os.path.exists(self.sample_rules):
+            os.remove(self.sample_rules)
+
+        with open(self.sample_rules, 'w') as f:
+            f.write(rule_contents)
 
     def tearDown(self):
         if os.path.exists(self.sample_rules):

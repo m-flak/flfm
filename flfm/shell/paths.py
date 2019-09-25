@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 import filetype
+import mimetypes
 
 class ShellItem:
     file = False
@@ -35,11 +36,22 @@ class ShellFile(ShellItem):
 
     def is_mimetype_family(self, want_family):
         our_type = filetype.guess(self.path)
+
         if our_type is None:
+            # sometimes, filetype fails horribly
+            # # like with text files. works great for images though
+            type, encoding = mimetypes.guess_type(self.path)
+            if type is None:
+                return False
+            if re.match(want_family, type) is not None:
+                return True
             return False
         if re.match(want_family, our_type.mime) is not None:
             return True
         return False
+
+    def __repr__(self):
+        return '<ShellFile \'{}\' at \'{}\'>'.format(self.name, self.path)
 
 class ShellDirectory(ShellItem):
     directory = True
@@ -76,7 +88,7 @@ class ShellPath:
 
         self.path = Path(path_string)
         self.str_path = path_string
-        
+
         if self.path.exists():
             self.files = [ShellFile(file) for file in get_files(self.path.iterdir())]
             self.directories = [ShellDirectory(dir) for dir in get_dirs(self.path.iterdir())]

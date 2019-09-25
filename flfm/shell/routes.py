@@ -151,14 +151,16 @@ def medialist():
     if where_at is None or what_kind is None:
         abort(400)
 
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
+    this_path = ShellPath(where_at)
+    mapped_dirs = MappedDirectories.from_shell_path(this_path).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
     enforce_mapped(mapped_dirs, where_at)
-
-    this_path = ShellPath(where_at, mapped_dirs)
+    
     matched_media = list(filter(lambda f: f.is_mimetype_family(what_kind),
                                 this_path.files))
 
     the_medialist = list(gen_ml(matched_media))
+
     resp = make_response(json.dumps(the_medialist))
     resp.mimetype = 'application/json'
     return resp
