@@ -2,6 +2,7 @@ import os
 from flask import (
     Blueprint, render_template, g, request, current_app, abort, make_response
 )
+from flfm.shell.paths import ShellPath
 from flfm.shell.rules import enforce_mapped, needs_rules, MappedDirectories
 from flfm.misc import get_banner_string
 from .vcache import vcache
@@ -22,6 +23,8 @@ def view_file():
     input_file = request.args['f']
     if_mimetype = request.args['mt']
     current_dir = os.path.dirname(input_file)
+    mapped_dirs = MappedDirectories.from_shell_path(ShellPath(current_dir)).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
     enforce_mapped(mapped_dirs, current_dir)
 
     # If the file is not cacheable (ie: too large), we'll send the path

@@ -4,6 +4,7 @@ import re
 from functools import wraps
 from werkzeug.datastructures import MultiDict
 from flask import current_app, g, flash, abort
+from .paths import ShellDirectory
 
 # Generate (key, value) tuples from the rules file
 def read_rules_file(rule_file):
@@ -16,8 +17,6 @@ def read_rules_file(rule_file):
         yield (pair.group(1), pair.group(2))
 
 # Enforce the rules from the rules file on requested_path
-# Restrictions > Permissions
-# FIXME: ALLOW Rules required for subdirectories
 def enforce_mapped(mapped_dirs, requested_path, for_upload=False):
     requested_md = mapped_dirs.get_mapped_dir(requested_path)
     for mapped_dir in mapped_dirs:
@@ -42,7 +41,6 @@ def needs_rules(needing_method):
         if not hasattr(g, 'fm_rules'):
             g.fm_rules = Rules(rules_file)
         if rules_file is None or g.fm_rules.num_rules == 0:
-            flash('There are no rules restricting Flask FM!', 'danger')
             flash('Please properly configure Flask FM before using.', 'danger')
 
         return needing_method(*args, **kwargs)
@@ -119,6 +117,9 @@ class MappedDirectory:
             return True
         return False
 
+    def as_shell(self):
+        return ShellDirectory.from_str_loc(self.dir_path)
+
 class MappedDirectories(collections.abc.Mapping):
     def __init__(self, some_dict):
         self.D = some_dict
@@ -153,8 +154,27 @@ class MappedDirectories(collections.abc.Mapping):
 
         return cls(rule_dict)
 
+    @classmethod
+    def from_shell_path(cls, shell_path):
+        the_dict = dict()
+        default_tuple = (False, False)
+        current_dir_path = shell_path.str_path
+
+        the_dict[current_dir_path] = default_tuple
+        for subdir in shell_path.directories:
+            the_dict[subdir.path] = default_tuple
+
+        return cls(the_dict)
+
     def __getitem__(self, key):
         return self.D.get(key)
+
+    def __setitem__(self, key, item):
+        if isinstance(item, MappedDirectory):
+            new_item = (item.dir_allowed, item.dir_allowuploads)
+            self.D[key] = new_item
+            return
+        self.D[key] = item
 
     def __len__(self):
         return len(self.D)
@@ -177,6 +197,46 @@ class MappedDirectories(collections.abc.Mapping):
 
     def get_mapped_dir(self, dir_path):
         return MappedDirectory.create_from_mapping(self, dir_path)
+
+    def apply_rule_map(self, rule_map):
+        def length_paths(other_map):
+            for md in other_map:
+                yield len(md.dir_path)
+        def difference_length(my_length, all_lengths):
+            for length in all_lengths:
+                yield abs(length-my_length)
+
+        # the length of each path in the rule mapping
+        rule_map_lens = list(length_paths(rule_map))
+
+        for my_dir in self:
+            # apply rule directly on top
+            # iterate, because it's been explicitly set
+            if my_dir in rule_map:
+                self[my_dir.dir_path] = rule_map.get_mapped_dir(my_dir.dir_path)
+                continue
+            for rule_dir in rule_map:
+                # are we in the tree of a ruled directory?
+                if rule_dir.is_in_tree(my_dir.dir_path):
+                    # we are in a tree of a disallowed directory
+                    # prevent overwriting permissions
+                    if not rule_dir.dir_allowed:
+                        self[my_dir.dir_path] = rule_dir
+                        break
+                    my_length = len(my_dir.dir_path)
+                    rd_length = len(rule_dir.dir_path)
+                    # only lengths of what's in tree
+                    rule_map_lens = list(filter(lambda x, l=rd_length: x <= l,
+                                                rule_map_lens))
+                    # apply rules to subdirectories of a ruled directory
+                    # the most-common parent path from the rule mapping is the
+                    # # one whose permissions shall be applied to the subdirectory
+                    if my_length == min(difference_length(my_length, rule_map_lens))+rd_length:
+                        self[my_dir.dir_path] = rule_dir
+            # reset for next iteration
+            rule_map_lens = list(length_paths(rule_map))
+
+        return self
 
     @property
     def num_allowed(self):

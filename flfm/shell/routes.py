@@ -7,15 +7,12 @@ from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
     url_for, current_app, make_response
 )
-from flfm.misc import get_banner_string, make_arg_url
+from flfm.misc import get_banner_string, make_arg_url, make_filepond_id
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
 from .uploads import UploadedFile
 
 shell = Blueprint('shell', __name__, template_folder='templates')
-
-def make_filepond_id():
-    return ord(os.urandom(1))<<16|ord(os.urandom(1))<<8|ord(os.urandom(1))<<4|ord(os.urandom(1))
 
 def is_viewable_mimetype(mimetype):
     conditions = [re.match('text/', mimetype) is not None,
@@ -53,7 +50,8 @@ def shell_default():
 @needs_rules
 def shell_view(view_path):
     view_path_fixed = '/{}'.format(view_path)
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
+    mapped_dirs = MappedDirectories.from_shell_path(ShellPath(view_path_fixed)).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
     enforce_mapped(mapped_dirs, view_path_fixed)
 
     shell_path = ShellPath(view_path_fixed, mapped_dirs)
@@ -64,9 +62,11 @@ def shell_view(view_path):
 @shell.route('/serve')
 @needs_rules
 def serve_file():
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
     input_file = request.args['f']
-    enforce_mapped(mapped_dirs, os.path.dirname(input_file))
+    input_dir = os.path.dirname(input_file)
+    mapped_dirs = MappedDirectories.from_shell_path(ShellPath(input_dir)).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
+    enforce_mapped(mapped_dirs, input_dir)
 
     mimetype = mimetypes.guess_type(input_file)[0]
     if mimetype is None:
@@ -89,7 +89,6 @@ def serve_file():
 @shell.route('/process', methods=['POST'])
 @needs_rules
 def process():
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
     content_type = re.search(r"^.+;",
                              request.headers['Content-Type']).group(0).strip(';')
 
@@ -98,6 +97,8 @@ def process():
         filename = request.files['filepond'].filename
         upload_path = request.headers['X-Uploadto']
         filepond_id = make_filepond_id()
+        mapped_dirs = MappedDirectories.from_shell_path(ShellPath(upload_path)).\
+                      apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
         enforce_mapped(mapped_dirs, upload_path, True)
 
         s_entry = 'tmp_{}'.format(filepond_id)
@@ -132,16 +133,16 @@ def process():
 def medialist():
     def gen_ml(dem_files):
         for i, shellfile in enumerate(dem_files):
-            prev, cur, next = None, None, None
+            prev, cur, nxt = None, None, None
             cur = shellfile.path
             if i > 0:
                 prev = dem_files[i-1].path
             if i+1 < len(dem_files):
-                next = dem_files[i+1].path
+                nxt = dem_files[i+1].path
             yield dict({
                 'prev': prev,
                 'cur': cur,
-                'next': next,
+                'next': nxt,
             })
     #       #       #       #       #       #
     where_at = request.form.get('directory', None)
@@ -150,14 +151,16 @@ def medialist():
     if where_at is None or what_kind is None:
         abort(400)
 
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
+    this_path = ShellPath(where_at)
+    mapped_dirs = MappedDirectories.from_shell_path(this_path).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
     enforce_mapped(mapped_dirs, where_at)
 
-    this_path = ShellPath(where_at, mapped_dirs)
     matched_media = list(filter(lambda f: f.is_mimetype_family(what_kind),
                                 this_path.files))
 
     the_medialist = list(gen_ml(matched_media))
+
     resp = make_response(json.dumps(the_medialist))
     resp.mimetype = 'application/json'
     return resp

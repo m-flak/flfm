@@ -1,3 +1,4 @@
+import os
 import werkzeug.urls as wurls
 
 # quickly make a url w/ args using werkzeug
@@ -23,3 +24,7 @@ def get_banner_string(app):
             banner_val = 'Flask File Manager'
 
     return banner_val
+
+# generate a nice, big random integer
+def make_filepond_id():
+    return ord(os.urandom(1))<<16|ord(os.urandom(1))<<8|ord(os.urandom(1))<<4|ord(os.urandom(1))

@@ -13,6 +13,7 @@ Flask File Manager (flfm) is a WSGI application written in Python.
 * [Configuring flfm](#configuring-flfm)<br/>1. [.env file](#dotenv-file)<br/>2. [rules file](#rules-file)
 * [Before Using flfm](#before-using-flfm)
 * [Deploying flfm](#deploying-flfm)
+* [Running Tests](#running-tests)
 * [Special Thanks](#special-thanks)
 
 ### Configuring flfm
@@ -49,11 +50,16 @@ The rules file is plain text and does not support comments. Here is an example:
 ```
 Allowed=/var/www/public
 Disallowed=/var/www/public/private
-Allowed=/var/www/public/private/not-private
 AllowUploads=/var/www/public/incoming
 ```
-By default, in the presence of a rules file, only directories &amp; subdirectories of an _allow rule_ can be traversed. Likewise, the directories &amp; subdirectories of a _disallow rule_ are restricted. If you wish to allow flfm access into a specific folder within a restricted subtree, you can explicitly supply an _allow rule_, which will allow a user to browse that directory **and only that directory**.
-Please note that all of these rules apply only to directories &amp; files that are accessible by the WSGI server's _uid/gid_.
+By default, all paths are non-traversable. If you want a path on your server to be accessible, you'll need to add an **Allowed** rule.
+
+You can explicitly restrict subdirectories within an allowed directory by specifying a **Disallowed** rule with the fully-qualified path to that subdirectory.
+
+###### Nesting:
+When it comes to the nesting of rules, **do not** nest an _Allowed_ rule in a _Disallowed_ rule's directory tree. There's no reason to do this, for Flask File Manager will not allow access to files or directories by default in the absence of rules.
+
+*Please note that all of these rules apply only to directories &amp; files that are accessible by the WSGI server's _uid/gid_.*
 
 **Explanation:**<br/>
 ```Allowed=/path/to/foo``` - _give flfm access to this dir_<br/>
@@ -71,6 +77,16 @@ Refer to the example systemd service file in _systemd/flfm.service_.
 You'll be able to start flfm as a service with ```systemctl```.
 
 For a tutorial concerning this, [check out this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-16-04).
+
+### Running Tests
+If you wish to run the tests for yourself, ensure that you have created a [.env file](#dotenv-file) pointing to a sample [rules file](#rules-file).
+
+You'll also want to ensure that you have the appropriate directory tree structure to run the tests against as well.
+
+Then, from the project root directory, simply execute:
+```
+python tests.py
+```
 
 ### Special Thanks
 Special thanks go out to the following javascript libraries not listed in the project's dependencies:
