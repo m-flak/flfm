@@ -155,7 +155,7 @@ def medialist():
     mapped_dirs = MappedDirectories.from_shell_path(this_path).\
                   apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
     enforce_mapped(mapped_dirs, where_at)
-    
+
     matched_media = list(filter(lambda f: f.is_mimetype_family(what_kind),
                                 this_path.files))
 

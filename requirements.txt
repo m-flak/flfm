@@ -1,3 +1,4 @@
+blinker
 Flask
 Flask-Bootstrap
 Flask-DotEnv

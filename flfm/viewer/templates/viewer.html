@@ -45,9 +45,13 @@
   <div class="fl-row">
       <div class="card full-card card-shadow j-center">
           {% call misc.find_mimetype_part(mimetype, 'text') -%}
-            <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+            {% if was_cacheable -%}
+                <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+            {% else -%}
+                <pre id="viewer-contents">TODO: LOAD GIANT TEXT FILES :/</pre>
+            {%- endif %}
             {{ script.declare_string_var('viewer_type', 'text') }}
-            {{ script.declare_literal_var('viewer_srv_cache', False) }}
+            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
           {%- endcall %}
           {% call misc.find_mimetype_part(mimetype, 'image') -%}
             <div id="viewer-contents">

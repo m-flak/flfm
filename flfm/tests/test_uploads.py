@@ -102,12 +102,12 @@ class UploadsTest(TestConfig, TestCase):
         print("\nTesting uploading through the web interface.")
 
         url = url_for('shell.process')
-        response = self.client.post(url, headers=dict({'X-Uploadto': ul_to }),
+        response = self.client.post(url, headers=dict({'X-Uploadto': ul_to}),
                                     data=dict(filepond=open(self.sample, 'rb')))
         self.assert200(response)
-        response = self.client.post(url, headers=dict({'X-Uploadto': ul_to_2 }),
+        response = self.client.post(url, headers=dict({'X-Uploadto': ul_to_2}),
                                     data=dict(filepond=open(self.sample, 'rb')))
         self.assert200(response)
-        response = self.client.post(url, headers=dict({'X-Uploadto': ul_to_3 }),
+        response = self.client.post(url, headers=dict({'X-Uploadto': ul_to_3}),
                                     data=dict(filepond=open(self.sample, 'rb')))
         self.assert403(response)
