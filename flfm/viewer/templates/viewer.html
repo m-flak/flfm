@@ -101,12 +101,12 @@
     let media_list = new Promise(function(resolve, reject) {
         if (sessionStorage.getItem('MediaList')) {
             var the_data = JSON.parse(sessionStorage.getItem('MediaList'));
-	    check_me = the_data.filter(e => e.cur === viewer_current_file || e.prev === viewer_current_file || e.next === viewer_current_file);
-	    if (check_me.length >= 1) {
-            	resolve(the_data);
-	    } else {
-		sessionStorage.removeItem('MediaList');
-	    }
+            check_me = the_data.filter(e => e.cur === viewer_current_file || e.prev === viewer_current_file || e.next === viewer_current_file);
+            if (check_me.length >= 1) {
+                resolve(the_data);
+            } else {
+                sessionStorage.removeItem('MediaList');
+            }
         }
         if (!sessionStorage.getItem('MediaList')) {
             let wl = window.location;

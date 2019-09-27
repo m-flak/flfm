@@ -72,11 +72,44 @@ Before using flfm, you'll need to _**generate the secret key**_.
 This is easily accomplished with running ```make``` in the project root directory _(requires bash & openssl)_.
 
 ### Deploying flfm
+###### systemd Service
 Refer to the example systemd service file in _systemd/flfm.service_.
 
 You'll be able to start flfm as a service with ```systemctl```.
 
 For a tutorial concerning this, [check out this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-16-04).
+
+###### nginx Configuration
+There are two ways to configure nginx as a reverse-proxy for flfm.
+* From the root, _or **/**_
+* From a location, _such as **/flfm**_
+
+Let's look at how our location directives would look for the first method.
+
+```
+        location / {
+                proxy_pass http://127.0.0.1:<port>/;
+                proxy_redirect off;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+        }
+```
+ Now, let's look at how our location directives would look for the second method. **Whatever location you pick must be both in the proxy_pass directive and also set as the APPLICATION_ROOT variable in the [.env file](#dotenv-file).**
+
+```
+         location ^~ /flfm {
+                proxy_pass http://127.0.0.1:<port>/flfm;
+                proxy_redirect off;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+        }
+```
+
+**REMEMBER:**  _APPLICATION_ROOT == Location == End of proxy\_pass_.
 
 ### Running Tests
 If you wish to run the tests for yourself, ensure that you have created a [.env file](#dotenv-file) pointing to a sample [rules file](#rules-file).
