@@ -19,7 +19,6 @@ def make_vars_available():
 @viewer.route('/view')
 @needs_rules
 def view_file():
-    mapped_dirs = MappedDirectories.from_rules(g.fm_rules)
     input_file = request.args['f']
     if_mimetype = request.args['mt']
     current_dir = os.path.dirname(input_file)
