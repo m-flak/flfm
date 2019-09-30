@@ -131,6 +131,7 @@ def process():
 @shell.route('/medialist', methods=['POST'])
 @needs_rules
 def medialist():
+    # generates a linked-list of matching files in a directory
     def gen_ml(dem_files):
         for i, shellfile in enumerate(dem_files):
             prev, cur, nxt = None, None, None
@@ -159,6 +160,7 @@ def medialist():
     matched_media = list(filter(lambda f: f.is_mimetype_family(what_kind),
                                 this_path.files))
 
+    # create the linked-list like object for the frontend
     the_medialist = list(gen_ml(matched_media))
 
     resp = make_response(json.dumps(the_medialist))

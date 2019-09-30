@@ -48,7 +48,7 @@
             {% if was_cacheable -%}
                 <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
             {% else -%}
-                <pre id="viewer-contents">TODO: LOAD GIANT TEXT FILES :/</pre>
+                <pre id="viewer-contents">Loading. This may take a while...</pre>
             {%- endif %}
             {{ script.declare_string_var('viewer_type', 'text') }}
             {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
@@ -141,7 +141,19 @@
     }
     (function(t, c) {
         if (t === 'text') {
-            return;
+            if (c) {
+                return;
+            }
+            var file = get_url_vars()['f'];
+            let wl = window.location;
+            var big_file_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), file);
+            $.ajax({
+                method: 'GET',
+                url: big_file_url,
+                dataType: 'text',
+            }).done(function(d) {
+                $("#viewer-contents").text(d);
+            });
         }
         else if (t === 'image') {
             if (!c) {

@@ -24,3 +24,15 @@ function serve_params(serve_url, the_file) {
     return `${serve_url}?f=${the_file}&dl=1`;
 }
 
+function get_url_vars() {
+    var vars = {};
+    try {
+        var url = window.parent.parent.location.href;
+        var parts = url.split("#")[0].replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
+            vars[key] = value;
+        });
+    } catch (e) {
+        // do nothing
+    }
+    return vars;
+}
