@@ -53,6 +53,7 @@
             {%- endif %}
             {{ script.declare_string_var('viewer_type', 'text') }}
             {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+            {{ script.declare_literal_var('image_url', 'null') }}
           {%- endcall %}
           {% call misc.find_mimetype_part(mimetype, 'image') -%}
             <div id="viewer-contents">
@@ -83,6 +84,9 @@
             </div>
             {{ script.declare_string_var('viewer_type', 'image') }}
             {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+            <script type="text/javascript">
+                var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
+            </script>
           {%- endcall %}
       </div>
   </div>
@@ -95,128 +99,7 @@
 {{ super() }}
 {{ script.declare_string_var('flfm_root', g.available_vars.app_root) }}
 {{ script.declare_string_var('viewer_current_file', current_file) }}
-<script type="text/javascript">
-    /*<!CDATA[*/
-    resize_location_bar("#location-bar", "#commands");
-    let media_list = new Promise(function(resolve, reject) {
-        if (sessionStorage.getItem('MediaList')) {
-            var the_data = JSON.parse(sessionStorage.getItem('MediaList'));
-            check_me = the_data.filter(e => e.cur === viewer_current_file || e.prev === viewer_current_file || e.next === viewer_current_file);
-            if (check_me.length >= 1) {
-                resolve(the_data);
-            } else {
-                sessionStorage.removeItem('MediaList');
-            }
-        }
-        if (!sessionStorage.getItem('MediaList')) {
-            let wl = window.location;
-            $.ajax({
-                method: 'POST',
-                url: make_url(`${wl.protocol}//${wl.host}`, flfm_root, '/medialist'),
-                data: { directory: "{{ current_dir }}", whatkind: viewer_type }
-            }).done(function(d) {
-                sessionStorage.setItem('MediaList', JSON.stringify(d));
-                resolve(d);
-            });
-        }
-    });
-    const serve_url = "{{ url_for('shell.serve_file') }}";
-    var slideshow_playing = false;
-    var slideshow_timeout;
-    function next_image() {
-        if (slideshow_playing) {
-            media_list.then(function(the_list) {
-                current = the_list.filter(e => e.cur === viewer_current_file);
-                if (current[0].next == null) {
-                    viewer_current_file = the_list[0].cur;
-                } else {
-                    viewer_current_file = current[0].next;
-                }
-                let wl = window.location;
-                var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
-                $("img.viewer-image").cacheImages({url: new_url});
-                $(document).trigger("slideshowEvent");
-            });
-        }
-    }
-    (function(t, c) {
-        if (t === 'text') {
-            if (c) {
-                return;
-            }
-            var file = get_url_vars()['f'];
-            let wl = window.location;
-            var big_file_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), file);
-            $.ajax({
-                method: 'GET',
-                url: big_file_url,
-                dataType: 'text',
-            }).done(function(d) {
-                $("#viewer-contents").text(d);
-            });
-        }
-        else if (t === 'image') {
-            if (!c) {
-                var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
-                image_url = image_url.trim();
-                image_url = image_url.replace(/&\w+;/, '&');
-                let wl = window.location;
-                var full_url = make_url(`${wl.protocol}//${wl.host}`, flfm_root, image_url);
-                $("img.viewer-image").cacheImages({url: full_url});
-            }
-
-            $(document).on("slideshowEvent", function() {
-                var slideshow_delay = localStorage.getItem('slideshowDelay') || 5000;
-                slideshow_delay = Number(slideshow_delay);
-                slideshow_playing = true;
-                slideshow_timeout = window.setTimeout(next_image, slideshow_delay);
-            });
-            $("a#previous-file").on("click", function() {
-                media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === viewer_current_file);
-                    if (current[0].prev != null) {
-                        viewer_current_file = current[0].prev;
-                        let wl = window.location;
-                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
-                        $("img.viewer-image").cacheImages({url: new_url});
-                    }
-                });
-            });
-            $("a#next-file").on("click", function() {
-                media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === viewer_current_file);
-                    if (current[0].next != null) {
-                        viewer_current_file = current[0].next;
-                        let wl = window.location;
-                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
-                        $("img.viewer-image").cacheImages({url: new_url});
-                    }
-                });
-            });
-            $("a#play-files").on("click", function(e) {
-                const classes = 'hidden invisible';
-                let this_button = $(e.currentTarget);
-
-                this_button.toggleClass(classes);
-                $("a#stop-files").toggleClass(classes);
-                $(document).trigger("slideshowEvent");
-            });
-            $("a#stop-files").on("click", function(e) {
-                const classes = 'hidden invisible';
-                let this_button = $(e.currentTarget);
-
-                this_button.toggleClass(classes);
-                $("a#play-files").toggleClass(classes);
-                slideshow_playing = false;
-                if (typeof slideshow_timeout !== 'undefined') {
-                    if (slideshow_timeout != -1) {
-                        window.clearTimeout(slideshow_timeout);
-                        slideshow_timeout = -1;
-                    }
-                }
-            });
-        }
-    })(viewer_type, viewer_srv_cache);
-    //]]>
-</script>
+{{ script.declare_string_var('current_dir', current_dir) }}
+{{ script.declare_string_var('serve_url', url_for('shell.serve_file')) }}
+<script src="{{ url_for('static', filename='flfm_viewer.js') }}"></script>
 {%- endblock %}
