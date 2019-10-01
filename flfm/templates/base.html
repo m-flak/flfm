@@ -7,3 +7,11 @@
     <link rel="stylesheet" type="text/css"
         href="{{ url_for('static', filename='flfm_styles.css') }}" />
 {% endblock -%}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-base64@2.5.1/base64.min.js"></script>
+<script src="{{ url_for('static', filename='jquery.cacheImages.min.js') }}"></script>
+<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
+{% endblock %}

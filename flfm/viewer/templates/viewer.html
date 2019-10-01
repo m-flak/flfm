@@ -25,7 +25,8 @@
   {% endif -%}
   <div class="fl-row">
       <div id="location-bar" class="card full-card card-shadow j-center">
-          <h4>{{ current_file }}</h4>
+          {%- set cf_length = current_file|length() %}
+          <h4 data-strlen="{{ cf_length }}">{{ current_file }}</h4>
           <div id="commands">
               <ul>
                   <li>
@@ -94,10 +95,9 @@
 {{ super() }}
 {{ script.declare_string_var('flfm_root', g.available_vars.app_root) }}
 {{ script.declare_string_var('viewer_current_file', current_file) }}
-<script src="{{ url_for('static', filename='jquery.cacheImages.min.js') }}"></script>
-<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
 <script type="text/javascript">
     /*<!CDATA[*/
+    resize_location_bar("#location-bar", "#commands");
     let media_list = new Promise(function(resolve, reject) {
         if (sessionStorage.getItem('MediaList')) {
             var the_data = JSON.parse(sessionStorage.getItem('MediaList'));

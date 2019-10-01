@@ -36,3 +36,29 @@ function get_url_vars() {
     }
     return vars;
 }
+
+function resize_location_bar(selector, buttons_selector, max_size=18) {
+    let the_location = $(selector).children("h4");
+    var strlen = the_location.data('strlen');
+    var buttwidth = $(buttons_selector).width();
+    var vw, fs;
+
+    if (typeof window.parent.parent.screen.availWidth === 'undefined') {
+        vw = window.parent.parent.screen.width;
+    } else {
+        vw = window.parent.parent.screen.availWidth;
+    }
+
+    fs = Math.round(vw/strlen);
+    fs -= Math.round(fs*buttwidth/vw);
+
+    if (fs > max_size) {
+        return;
+    } else if (fs < 12 && fs >= 10) {
+        the_location.css('line-height', '1.5');
+    } else if (fs < 10) {
+        the_location.css('line-height', '2');
+    }
+
+    the_location.css('font-size', `${fs}pt`);
+}

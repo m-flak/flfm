@@ -24,7 +24,8 @@
   {% endif -%}
   <div class="fl-row">
       <div id="location-bar" class="card full-card card-shadow j-center">
-          <h4>{{ whereami }}</h4>
+          {%- set wai_length = whereami|length() %}
+          <h4 data-strlen="{{ wai_length }}">{{ whereami }}</h4>
           <div id="commands">
               <ul>
                   <li>
@@ -174,11 +175,8 @@
 {% block scripts -%}
 {{ super() }}
 {{ scripting.declare_string_var('flfm_root', g.available_vars.app_root) }}
-<script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
 {%- if cwd_mapping.dir_allowuploads %}
 <script src="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.js"></script>
-{# include file for `make_url` #}
-<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
 <script type="text/javascript">
     /*<!CDATA[*/
     function make_error_alert(error_string) {
@@ -303,6 +301,8 @@
             }
         });
     });
+
+    resize_location_bar("#location-bar", "#commands");
     //]]>
 </script>
 {%- else -%}
@@ -354,6 +354,8 @@
             }
         });
     });
+
+    resize_location_bar("#location-bar", "#commands");
     //]]>
 </script>
 {% endif -%}
