@@ -1,6 +1,6 @@
 (function ($, _viewer_type, _viewer_srv_cache, _flfm_root, _viewer_current_file, _current_dir, _serve_url, _image_url) {
     resize_location_bar("#location-bar", "#commands");
-    
+
     let media_list = new Promise(function(resolve, reject) {
         if (sessionStorage.getItem('MediaList')) {
             var the_data = JSON.parse(sessionStorage.getItem('MediaList'));
@@ -119,6 +119,50 @@
                         slideshow_timeout = -1;
                     }
                 }
+            });
+        } else if (t === 'video') {
+            /* abort if video.js not loaded */
+            if (typeof videojs !== 'function') {
+                return;
+            }
+
+            var video_filename;
+            var socket = io();
+            let vid = videojs('viewer-video');
+            vid.responsive(true);
+            let video_info = new Promise(function(resolve, reject) {
+                var vi = {};
+                let wl = window.location;
+                $.ajax({
+                    method: 'POST',
+                    url: make_url(`${wl.protocol}//${wl.host}`, _flfm_root, '/mediainfo'),
+                    data: { directory: _current_dir, file: _viewer_current_file }
+                }).done(function(d) {
+                    vi = d;
+                    resolve(vi);
+                }).fail(() => reject(vi));
+            });
+
+            socket.on("connect", function() {
+                video_info.then(function(info) {
+                    vid.width = info.width;
+                    $("video").attr('width', info.width);
+                    vid.height = info.height;
+                    $("video").attr('height', info.height);
+                    video_filename = info.filename;
+                    socket.emit('prepare video', {
+                        data: {
+                            filename: video_filename,
+                            shell_location: _viewer_current_file
+                        }
+                    });
+                });
+            });
+            socket.on("video ready", function(d) {
+                var source_string = JSON.parse(d).video_url;
+                vid.src(source_string.concat('?start=0'));
+                socket.emit('received_video');
+                socket.close();
             });
         }
     })(_viewer_type, _viewer_srv_cache);

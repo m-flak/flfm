@@ -2,11 +2,13 @@ import os
 from flask import Flask, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_session import Session
+from flask_socketio import SocketIO
 from .shell import shell
 from .viewer import viewer, vcache
 
 bootstrap = Bootstrap()
 e_session = Session()
+socketio = SocketIO()
 
 def format_root(*args, **kwargs):
     root = kwargs.get('root', '')
@@ -36,6 +38,7 @@ def create_app(config_object):
     # Setup extensions
     bootstrap.init_app(app)
     e_session.init_app(app)
+    socketio.init_app(app)
 
     # Setup dependents
     vcache.init_app(app)
@@ -50,6 +53,9 @@ def create_app(config_object):
                          app_route)
     else:
         app.add_url_rule('/', app_route.__name__, app_route)
+
+    # SOCKET-IO STUFF GOES HERE
+    from .sockets import prepare_video
 
     return app
 

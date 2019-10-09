@@ -13,6 +13,9 @@ class Config:
     RULES_FILE = os.environ.get('RULES_FILE', None)
     VCACHE_MAX_FILESIZE = 1048576
     VCACHE_MAX_FILES = 16
+    VIEWER_VIDEO_DIRECTORY = os.environ.get('VIEWER_VIDEO_DIRECTORY',
+                                            os.path.join(os.getcwd(),
+                                                         'videos'))
 
     @classmethod
     def init_app(cls, app):

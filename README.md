@@ -30,6 +30,9 @@ RULES_FILE=/etc/flfm.d/rules
 # Where to store session files
 SESSION_FILE_DIR=/var/cache/flfm/
 
+# Where to sideload videos for streaming thru the viewer
+VIEWER_VIDEO_DIRECTORY=/var/cache/videos
+
 # Uncomment to change Application Root
 ##APPLICATION_ROOT=/flfm
 
@@ -111,6 +114,19 @@ Let's look at how our location directives would look for the first method.
 
 **REMEMBER:**  _APPLICATION_ROOT == Location == End of proxy\_pass_.
 
+##### Playing videos
+
+Make an alias to the **VIEWER_VIDEO_DIRECTORY** variable.
+
+```
+        location /videos/ {
+            alias <VIEWER_VIDEO_DIRECTORY>;
+            mp4;
+            mp4_buffer_size 2M;
+            mp4_max_buffer_size 10M;
+        }
+```
+
 ### Running Tests
 If you wish to run the tests for yourself, ensure that you have created a [.env file](#dotenv-file) pointing to a sample [rules file](#rules-file).
 
@@ -127,3 +143,4 @@ Special thanks go out to the following javascript libraries not listed in the pr
 * [js.cookies](https://github.com/js-cookie/js-cookie)
 * [base64.js](https://github.com/dankogai/js-base64)
 * @FreshVine's [jQuery-cache-images](https://github.com/FreshVine/jQuery-cache-images)
+* [video.js](https://videojs.com/)

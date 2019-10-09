@@ -9,6 +9,11 @@
     {{ super() }}
 {%- endblock %}
 
+{% block styles -%}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='video-js.min.css') }}" rel="stylesheet">
+{%- endblock %}
+
 {% block body -%}
 <div id="layout">
  <div class="container">
@@ -88,6 +93,25 @@
                 var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
             </script>
           {%- endcall %}
+          {% call misc.find_mimetype_part(mimetype, 'video') -%}
+            <div id="viewer-contents" class="vjs-fill">
+                <video id="viewer-video" class="video-js" controls preload="auto"
+                       data-setup='{}'>
+                </video>
+                <div class="viewer-video-controls">
+                    <a href="#viewer-contents" id="previous-file" title="Previous Video...">
+                        <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
+                    </a>
+                    <p>&nbsp;</p>
+                    <a href="#viewer-contents" id="next-file" title="Next Video...">
+                        <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
+                    </a>
+                </div>
+            </div>
+            {{ script.declare_string_var('viewer_type', 'video') }}
+            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+            {{ script.declare_literal_var('image_url', 'null') }}
+          {%- endcall %}
       </div>
   </div>
  </div>
@@ -101,5 +125,7 @@
 {{ script.declare_string_var('viewer_current_file', current_file) }}
 {{ script.declare_string_var('current_dir', current_dir) }}
 {{ script.declare_string_var('serve_url', url_for('shell.serve_file')) }}
+<script src="{{ url_for('static', filename='video.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@2.3.0/dist/socket.io.slim.js"></script>
 <script src="{{ url_for('static', filename='flfm_viewer.js') }}"></script>
 {%- endblock %}

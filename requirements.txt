@@ -1,8 +1,10 @@
 blinker
+eventlet
 Flask
 Flask-Bootstrap
 Flask-DotEnv
 Flask-Session
+Flask-SocketIO
 Flask-Testing
 filetype
 cachetools

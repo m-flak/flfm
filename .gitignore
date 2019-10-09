@@ -6,3 +6,4 @@ banner
 rules
 flfmenv/*
 flask_session/*
+videos/*
