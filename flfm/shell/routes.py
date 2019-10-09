@@ -206,6 +206,8 @@ def mediainfo():
     else:
         abort(501)
 
+    media_info['mimetype'] = shell_file.mimetype
+
     resp = make_response(json.dumps(media_info))
     resp.mimetype = 'application/json'
     return resp

@@ -24,6 +24,10 @@ function serve_params(serve_url, the_file) {
     return `${serve_url}?f=${the_file}&dl=1`;
 }
 
+function viewer_params(viewer_url, file, mimetype) {
+    return `${viewer_url}?f=${file}&mt=${mimetype}`;
+}
+
 function get_url_vars() {
     var vars = {};
     try {

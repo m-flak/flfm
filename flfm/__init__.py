@@ -55,7 +55,7 @@ def create_app(config_object):
         app.add_url_rule('/', app_route.__name__, app_route)
 
     # SOCKET-IO STUFF GOES HERE
-    from .sockets import prepare_video
+    from .sockets import prepare_video, received_video
 
     return app
 

@@ -164,6 +164,38 @@
                 socket.emit('received_video');
                 socket.close();
             });
+
+            $("a#previous-file").on("click", function() {
+                media_list.then(function(the_list) {
+                    current = the_list.filter(e => e.cur === _viewer_current_file);
+                    if (current[0].prev != null) {
+                        _viewer_current_file = current[0].prev;
+                        video_info.then(function(info) {
+                            var f = _viewer_current_file;
+                            var mt = info.mimetype;
+                            let wl = window.location;
+                            var redir_to = viewer_params(`${wl.protocol}//${wl.host}${wl.pathname}`, f, mt);
+                            document.location.assign(redir_to);
+                        });
+                    }
+                });
+            });
+
+            $("a#next-file").on("click", function() {
+                media_list.then(function(the_list) {
+                    current = the_list.filter(e => e.cur === _viewer_current_file);
+                    if (current[0].next != null) {
+                        _viewer_current_file = current[0].next;
+                        video_info.then(function(info) {
+                            var f = _viewer_current_file;
+                            var mt = info.mimetype;
+                            let wl = window.location;
+                            var redir_to = viewer_params(`${wl.protocol}//${wl.host}${wl.pathname}`, f, mt);
+                            document.location.assign(redir_to);
+                        });
+                    }
+                });
+            });
         }
     })(_viewer_type, _viewer_srv_cache);
 }(jQuery, viewer_type, viewer_srv_cache, flfm_root, viewer_current_file, current_dir, serve_url, image_url));
