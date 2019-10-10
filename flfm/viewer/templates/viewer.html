@@ -9,6 +9,11 @@
     {{ super() }}
 {%- endblock %}
 
+{% block styles -%}
+    {{ super() }}
+    <link href="{{ url_for('static', filename='video-js.min.css') }}" rel="stylesheet">
+{%- endblock %}
+
 {% block body -%}
 <div id="layout">
  <div class="container">
@@ -25,7 +30,8 @@
   {% endif -%}
   <div class="fl-row">
       <div id="location-bar" class="card full-card card-shadow j-center">
-          <h4>{{ current_file }}</h4>
+          {%- set cf_length = current_file|length() %}
+          <h4 data-strlen="{{ cf_length }}">{{ current_file }}</h4>
           <div id="commands">
               <ul>
                   <li>
@@ -48,10 +54,11 @@
             {% if was_cacheable -%}
                 <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
             {% else -%}
-                <pre id="viewer-contents">TODO: LOAD GIANT TEXT FILES :/</pre>
+                <pre id="viewer-contents">Loading. This may take a while...</pre>
             {%- endif %}
             {{ script.declare_string_var('viewer_type', 'text') }}
             {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+            {{ script.declare_literal_var('image_url', 'null') }}
           {%- endcall %}
           {% call misc.find_mimetype_part(mimetype, 'image') -%}
             <div id="viewer-contents">
@@ -82,6 +89,30 @@
             </div>
             {{ script.declare_string_var('viewer_type', 'image') }}
             {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+            <script type="text/javascript">
+                var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
+            </script>
+          {%- endcall %}
+          {% call misc.find_mimetype_part(mimetype, 'video') -%}
+            <div id="viewer-contents">
+              <div class="video-holder">
+                <video id="viewer-video" class="video-js vjs-fill" controls preload="auto"
+                       data-setup='{}'>
+                </video>
+              </div>
+                <div class="viewer-video-controls">
+                    <a href="#viewer-contents" id="previous-file" title="Previous Video...">
+                        <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
+                    </a>
+                    <p>&nbsp;</p>
+                    <a href="#viewer-contents" id="next-file" title="Next Video...">
+                        <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
+                    </a>
+                </div>
+            </div>
+            {{ script.declare_string_var('viewer_type', 'video') }}
+            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+            {{ script.declare_literal_var('image_url', 'null') }}
           {%- endcall %}
       </div>
   </div>
@@ -94,117 +125,9 @@
 {{ super() }}
 {{ script.declare_string_var('flfm_root', g.available_vars.app_root) }}
 {{ script.declare_string_var('viewer_current_file', current_file) }}
-<script src="{{ url_for('static', filename='jquery.cacheImages.min.js') }}"></script>
-<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
-<script type="text/javascript">
-    /*<!CDATA[*/
-    let media_list = new Promise(function(resolve, reject) {
-        if (sessionStorage.getItem('MediaList')) {
-            var the_data = JSON.parse(sessionStorage.getItem('MediaList'));
-            check_me = the_data.filter(e => e.cur === viewer_current_file || e.prev === viewer_current_file || e.next === viewer_current_file);
-            if (check_me.length >= 1) {
-                resolve(the_data);
-            } else {
-                sessionStorage.removeItem('MediaList');
-            }
-        }
-        if (!sessionStorage.getItem('MediaList')) {
-            let wl = window.location;
-            $.ajax({
-                method: 'POST',
-                url: make_url(`${wl.protocol}//${wl.host}`, flfm_root, '/medialist'),
-                data: { directory: "{{ current_dir }}", whatkind: viewer_type }
-            }).done(function(d) {
-                sessionStorage.setItem('MediaList', JSON.stringify(d));
-                resolve(d);
-            });
-        }
-    });
-    const serve_url = "{{ url_for('shell.serve_file') }}";
-    var slideshow_playing = false;
-    var slideshow_timeout;
-    function next_image() {
-        if (slideshow_playing) {
-            media_list.then(function(the_list) {
-                current = the_list.filter(e => e.cur === viewer_current_file);
-                if (current[0].next == null) {
-                    viewer_current_file = the_list[0].cur;
-                } else {
-                    viewer_current_file = current[0].next;
-                }
-                let wl = window.location;
-                var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
-                $("img.viewer-image").cacheImages({url: new_url});
-                $(document).trigger("slideshowEvent");
-            });
-        }
-    }
-    (function(t, c) {
-        if (t === 'text') {
-            return;
-        }
-        else if (t === 'image') {
-            if (!c) {
-                var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
-                image_url = image_url.trim();
-                image_url = image_url.replace(/&\w+;/, '&');
-                let wl = window.location;
-                var full_url = make_url(`${wl.protocol}//${wl.host}`, flfm_root, image_url);
-                $("img.viewer-image").cacheImages({url: full_url});
-            }
-
-            $(document).on("slideshowEvent", function() {
-                var slideshow_delay = localStorage.getItem('slideshowDelay') || 5000;
-                slideshow_delay = Number(slideshow_delay);
-                slideshow_playing = true;
-                slideshow_timeout = window.setTimeout(next_image, slideshow_delay);
-            });
-            $("a#previous-file").on("click", function() {
-                media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === viewer_current_file);
-                    if (current[0].prev != null) {
-                        viewer_current_file = current[0].prev;
-                        let wl = window.location;
-                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
-                        $("img.viewer-image").cacheImages({url: new_url});
-                    }
-                });
-            });
-            $("a#next-file").on("click", function() {
-                media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === viewer_current_file);
-                    if (current[0].next != null) {
-                        viewer_current_file = current[0].next;
-                        let wl = window.location;
-                        var new_url = serve_params(make_url(`${wl.protocol}//${wl.host}`, flfm_root, serve_url), viewer_current_file);
-                        $("img.viewer-image").cacheImages({url: new_url});
-                    }
-                });
-            });
-            $("a#play-files").on("click", function(e) {
-                const classes = 'hidden invisible';
-                let this_button = $(e.currentTarget);
-
-                this_button.toggleClass(classes);
-                $("a#stop-files").toggleClass(classes);
-                $(document).trigger("slideshowEvent");
-            });
-            $("a#stop-files").on("click", function(e) {
-                const classes = 'hidden invisible';
-                let this_button = $(e.currentTarget);
-
-                this_button.toggleClass(classes);
-                $("a#play-files").toggleClass(classes);
-                slideshow_playing = false;
-                if (typeof slideshow_timeout !== 'undefined') {
-                    if (slideshow_timeout != -1) {
-                        window.clearTimeout(slideshow_timeout);
-                        slideshow_timeout = -1;
-                    }
-                }
-            });
-        }
-    })(viewer_type, viewer_srv_cache);
-    //]]>
-</script>
+{{ script.declare_string_var('current_dir', current_dir) }}
+{{ script.declare_string_var('serve_url', url_for('shell.serve_file')) }}
+<script src="{{ url_for('static', filename='video.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@2.3.0/dist/socket.io.slim.js"></script>
+<script src="{{ url_for('static', filename='flfm_viewer.js') }}"></script>
 {%- endblock %}

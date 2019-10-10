@@ -24,7 +24,8 @@
   {% endif -%}
   <div class="fl-row">
       <div id="location-bar" class="card full-card card-shadow j-center">
-          <h4>{{ whereami }}</h4>
+          {%- set wai_length = whereami|length() %}
+          <h4 data-strlen="{{ wai_length }}">{{ whereami }}</h4>
           <div id="commands">
               <ul>
                   <li>
@@ -138,7 +139,7 @@
                 <h5>Built-in Viewer:</h5>
                 <p>Whether or not you wish to enable the built-in viewer for
                     files.
-                    <a href="#" title="Supported Files: Text Files, Image Files">
+                    <a href="#" title="Supported Files: Text Files, Image Files, Video Files">
                         <img src="{{ url_for('static', filename='flfm_tinyhelp.gif') }}" />
                     </a>
                 </p>
@@ -174,187 +175,12 @@
 {% block scripts -%}
 {{ super() }}
 {{ scripting.declare_string_var('flfm_root', g.available_vars.app_root) }}
-<script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js"></script>
+{{ scripting.declare_literal_var('uploads_allowed', cwd_mapping.dir_allowuploads) }}
+{{ scripting.declare_string_var('upload_where', whereami) }}
 {%- if cwd_mapping.dir_allowuploads %}
 <script src="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.js"></script>
-{# include file for `make_url` #}
-<script src="{{ url_for('static', filename='flfm_utils.js') }}"></script>
-<script type="text/javascript">
-    /*<!CDATA[*/
-    function make_error_alert(error_string) {
-        $("#uploadModalAlerts").append(`<div class='alert alert-danger' role='alert'>${error_string}</div>`);
-    }
-    var fp_object = null;
-    var ul_finished = false;
-    $("a#buttonUp").on("click", function() {
-        var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
-        document.location.assign(new_url);
-    });
-    $("#uploadModal").on("show.bs.modal", function(e) {
-        let file_input = $(e.currentTarget).find("input[type='file']").get(0);
-        $(e.currentTarget).find("button#uploadModalFinishButton").attr('disabled', true);
-        if (!fp_object) {
-            fp_object = FilePond.create(file_input);
-        }
-        let wl = window.location;
-        fp_object.setOptions({
-            allowPaste: false,
-            allowReplace: false,
-            allowRevert: false,
-            server: {
-                url: `${wl.protocol}//${wl.host}`,
-                process: {
-                    url: make_url(null, flfm_root, '/process'),
-                    method: 'POST',
-                    headers: {
-                        'X-Uploadto': "{{ whereami }}"
-                    },
-                },
-            },
-            onprocessfile: function(err,file) {
-                if (!err) {
-                    var serverid = file.serverId;
-                    var ul_dir = "{{ whereami }}";
-                    $.ajax({
-                        method: 'POST',
-                        url: make_url(`${wl.protocol}//${wl.host}`, flfm_root, '/process'),
-                        data: { id: serverid },
-                        dataType: 'text'
-                    }).done(function(d) {
-                        if (d === 'SUCCESS') {
-                            let bt_fin = $("#uploadModal").find("button#uploadModalFinishButton");
-                            bt_fin.attr('disabled', false);
-                        } else if (d === 'EXISTS') {
-                            make_error_alert("File already exists on server!");
-                        } else if (d === 'NOUPLOAD') {
-                            make_error_alert("File failed to be uploaded!");
-                        }
-                    });
-                }
-            },
-        });
-    });
-    $("#uploadModal").find("div.modal-footer").children("button").on("click", function(e) {
-        var tc = e.currentTarget.textContent.trim();
-        if (tc === 'Finish') {
-            ul_finished = true;
-        }
-    });
-    $("#uploadModal").on("hidden.bs.modal", function (e) {
-        let file_input = $(e.currentTarget).find("input[type='file']").get(0);
-        $(e.currentTarget).find("button#uploadModalFinishButton").attr('disabled', false);
-        if (fp_object) {
-            fp_object.destroy(file_input);
-            delete fp_object;
-            fp_object = null;
-        }
-        let alerts = $("#uploadModalAlerts").children();
-        if (alerts.length > 0) {
-            alerts.each(function() {
-                $(this).remove();
-            });
-        }
-        if (ul_finished) {
-            ul_finished = false;
-            if (sessionStorage.getItem('MediaList')) {
-                sessionStorage.removeItem('MediaList');
-            }
-            window.location.reload(true);
-        }
-    });
-    $("#settingsModal").on("show.bs.modal", function(e) {
-        var cookie = Cookies.get('flfm_viewer');
-        if (cookie != null) {
-            let vform = $(e.currentTarget).find("form#settingsModalForm-1").get(0);
-            for (var i = 0; i < vform.elements.length; i++) {
-                if (vform.elements[i].value === cookie) {
-                    vform.elements[i].checked = true;
-                }
-            }
-        }
-        var slideshow_delay = localStorage.getItem('slideshowDelay') || 5000;
-        slideshow_delay = Number(slideshow_delay);
-        $(e.currentTarget).find("form#settingsModalForm-2").children().each(function(i,e) {
-            if (e.id === 'slideshowDelay') {
-                $(this).val(slideshow_delay);
-            }
-        });
-    });
-    $("#settingsModalApplyButton").on("click", function() {
-        let vform = $("#settingsModal").find("form#settingsModalForm-1").get(0);
-        var viewer_new_val = null;
-        for (var i = 0; i < vform.elements.length; i++) {
-            if (vform.elements[i].checked == true) {
-                viewer_new_val = vform.elements[i].value;
-            }
-        }
-        if (!viewer_new_val) {
-            return;
-        }
-        if (Cookies.get('flfm_viewer') != null) {
-            Cookies.remove('flfm_viewer');
-        }
-        Cookies.set('flfm_viewer', viewer_new_val);
-
-        $("#settingsModal").find("form#settingsModalForm-2").children().each(function(i,e) {
-            if (e.id === 'slideshowDelay') {
-                var value = $(this).val();
-                localStorage.setItem('slideshowDelay', value);
-            }
-        });
-    });
-    //]]>
-</script>
+<script src="{{ url_for('static', filename='flfm_shell.js') }}"></script>
 {%- else -%}
-<script type="text/javascript">
-    /*<!CDATA[*/
-    $("a#buttonUp").on("click", function() {
-        var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
-        document.location.assign(new_url);
-    });
-    $("a#buttonUpload").addClass('disabled');
-    $("#settingsModal").on("show.bs.modal", function(e) {
-        var cookie = Cookies.get('flfm_viewer');
-        if (cookie != null) {
-            let vform = $(e.currentTarget).find("form#settingsModalForm-1").get(0);
-            for (var i = 0; i < vform.elements.length; i++) {
-                if (vform.elements[i].value === cookie) {
-                    vform.elements[i].checked = true;
-                }
-            }
-        }
-        var slideshow_delay = localStorage.getItem('slideshowDelay') || 5000;
-        slideshow_delay = Number(slideshow_delay);
-        $(e.currentTarget).find("form#settingsModalForm-2").children().each(function(i,e) {
-            if (e.id === 'slideshowDelay') {
-                $(this).val(slideshow_delay);
-            }
-        });
-    });
-    $("#settingsModalApplyButton").on("click", function() {
-        let vform = $("#settingsModal").find("form#settingsModalForm-1").get(0);
-        var viewer_new_val = null;
-        for (var i = 0; i < vform.elements.length; i++) {
-            if (vform.elements[i].checked == true) {
-                viewer_new_val = vform.elements[i].value;
-            }
-        }
-        if (!viewer_new_val) {
-            return;
-        }
-        if (Cookies.get('flfm_viewer') != null) {
-            Cookies.remove('flfm_viewer');
-        }
-        Cookies.set('flfm_viewer', viewer_new_val);
-
-        $("#settingsModal").find("form#settingsModalForm-2").children().each(function(i,e) {
-            if (e.id === 'slideshowDelay') {
-                var value = $(this).val();
-                localStorage.setItem('slideshowDelay', value);
-            }
-        });
-    });
-    //]]>
-</script>
+<script src="{{ url_for('static', filename='flfm_shell.js') }}"></script>
 {% endif -%}
 {%- endblock %}

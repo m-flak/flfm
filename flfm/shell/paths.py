@@ -1,7 +1,7 @@
 from pathlib import Path
+import mimetypes
 import re
 import filetype
-import mimetypes
 
 class ShellItem:
     file = False
@@ -27,9 +27,10 @@ class ShellFile(ShellItem):
 
     def __init__(self, path_obj):
         super().__init__(path_obj)
+        self._mimetype = None
 
     def is_mimetype(self, want_type):
-        our_type = filetype.guess(self.path)
+        our_type = filetype.guess(self.path).mime
         if our_type == want_type:
             return True
         return False
@@ -51,7 +52,17 @@ class ShellFile(ShellItem):
         return False
 
     def __repr__(self):
-        return '<ShellFile \'{}\' at \'{}\'>'.format(self.name, self.path)
+        return '<{} \'{}\' at \'{}\'>'.format(self.__class__.__name__,
+                                              self.name, self.path)
+
+    @property
+    def mimetype(self):
+        if self._mimetype is None:
+            try:
+                self._mimetype = filetype.guess(self.path).mime
+            except AttributeError:
+                self._mimetype = mimetypes.guess_type(self.path)[0]
+        return self._mimetype
 
 class ShellDirectory(ShellItem):
     directory = True

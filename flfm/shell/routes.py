@@ -8,6 +8,7 @@ from flask import (
     url_for, current_app, make_response
 )
 from flfm.misc import get_banner_string, make_arg_url, make_filepond_id
+import flfm.shell.video as vid_fmt
 from .paths import ShellPath
 from .rules import enforce_mapped, needs_rules, MappedDirectories
 from .uploads import UploadedFile
@@ -16,7 +17,8 @@ shell = Blueprint('shell', __name__, template_folder='templates')
 
 def is_viewable_mimetype(mimetype):
     conditions = [re.match('text/', mimetype) is not None,
-                  re.match('image/', mimetype) is not None]
+                  re.match('image/', mimetype) is not None,
+                  re.match('video/', mimetype) is not None]
 
     for c in conditions:
         if c:
@@ -131,6 +133,7 @@ def process():
 @shell.route('/medialist', methods=['POST'])
 @needs_rules
 def medialist():
+    # generates a linked-list of matching files in a directory
     def gen_ml(dem_files):
         for i, shellfile in enumerate(dem_files):
             prev, cur, nxt = None, None, None
@@ -159,8 +162,52 @@ def medialist():
     matched_media = list(filter(lambda f: f.is_mimetype_family(what_kind),
                                 this_path.files))
 
+    # create the linked-list like object for the frontend
     the_medialist = list(gen_ml(matched_media))
 
     resp = make_response(json.dumps(the_medialist))
+    resp.mimetype = 'application/json'
+    return resp
+
+@shell.route('/mediainfo', methods=['POST'])
+@needs_rules
+def mediainfo():
+    media_info = dict()
+    where_at = request.form.get('directory', None)
+    what_file = request.form.get('file', None)
+
+    if where_at is None or what_file is None:
+        abort(400)
+
+    this_path = ShellPath(where_at)
+    mapped_dirs = MappedDirectories.from_shell_path(this_path).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
+    enforce_mapped(mapped_dirs, where_at)
+
+    # Fix `what_file` if it redundantly includes the path
+    if where_at in what_file:
+        file_loc, file_name = os.path.split(what_file)
+        if not file_name or file_name is None:
+            abort(400)
+        what_file = file_name
+
+    # Abort if file can't be found.
+    try:
+        shell_file = list(filter(lambda f: f.name == what_file, this_path.files))[0]
+    except IndexError:
+        abort(400)
+
+    media_info['filename'] = shell_file.name
+
+    if 'mp4' in shell_file.mimetype:
+        video = vid_fmt.MP4File(shell_file.path)
+        media_info['width'] = video.video_width
+        media_info['height'] = video.video_height
+    else:
+        abort(501)
+
+    media_info['mimetype'] = shell_file.mimetype
+
+    resp = make_response(json.dumps(media_info))
     resp.mimetype = 'application/json'
     return resp

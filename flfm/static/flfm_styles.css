@@ -199,3 +199,20 @@ div#viewer-contents {
     border: 2px solid #CCDDCC;
     border-radius: 0.75em;
 }
+.viewer-video-controls {
+    align-content: center;
+    align-self: center;
+    margin-top: 0.5em;
+    padding: 0.25em;
+    background: #EEE;
+    border: 2px solid #CCDDCC;
+    border-radius: 0.75em;
+}
+.viewer-video-controls p {
+    display: inline-block;
+    padding: 8px;
+}
+.video-holder {
+    flex-direction: row;
+    flex: auto;
+}
