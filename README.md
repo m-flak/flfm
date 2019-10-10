@@ -84,6 +84,9 @@ You'll be able to start flfm as a service with ```systemctl```.
 For a tutorial concerning this, [check out this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-16-04).
 
 ###### nginx Configuration
+
+Checkout the example nginx config file in _nginx/example\_nginx.conf_.
+
 There are two ways to configure nginx as a reverse-proxy for flfm.
 * From the root, _or **/**_
 * From a location, _such as **/flfm**_
