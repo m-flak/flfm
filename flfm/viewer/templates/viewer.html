@@ -94,10 +94,12 @@
             </script>
           {%- endcall %}
           {% call misc.find_mimetype_part(mimetype, 'video') -%}
-            <div id="viewer-contents" class="vjs-fill">
-                <video id="viewer-video" class="video-js" controls preload="auto"
+            <div id="viewer-contents">
+              <div class="video-holder">
+                <video id="viewer-video" class="video-js vjs-fill" controls preload="auto"
                        data-setup='{}'>
                 </video>
+              </div>
                 <div class="viewer-video-controls">
                     <a href="#viewer-contents" id="previous-file" title="Previous Video...">
                         <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />

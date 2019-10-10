@@ -147,8 +147,10 @@
                 video_info.then(function(info) {
                     vid.width = info.width;
                     $("video").attr('width', info.width);
+                    $(".video-holder").css('min-width', info.width);
                     vid.height = info.height;
                     $("video").attr('height', info.height);
+                    $(".video-holder").css('min-height', info.width);
                     video_filename = info.filename;
                     socket.emit('prepare video', {
                         data: {
