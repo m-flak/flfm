@@ -4,10 +4,11 @@
 Flask File Manager (flfm) is a WSGI application written in Python.
 
 **Features:**
-* Built-in viewer for files. _Currently Supported: Text Files, Image files_
+* Built-in viewer for files. _Currently Supported: Text Files, Image Files, Video Files_
 * _**Configurable**_. Define where users can snoop around and upload (or not) files.
 * **SLIDESHOWS!** For image files, you can watch a slideshow of all images in a folder or manually sift through them.
 * Uploading of files.
+* **STREAM VIDEO CONTENT** The built-in viewer can play videos with a properly configured nginx.
 
 **Table of Contents**
 * [Configuring flfm](#configuring-flfm)<br/>1. [.env file](#dotenv-file)<br/>2. [rules file](#rules-file)
@@ -126,6 +127,8 @@ Make an alias to the **VIEWER_VIDEO_DIRECTORY** variable.
             mp4_max_buffer_size 10M;
         }
 ```
+
+Then, set up socket.io in nginx, [Click Here To See How](https://flask-socketio.readthedocs.io/en/latest/#using-nginx-as-a-websocket-reverse-proxy).
 
 ### Running Tests
 If you wish to run the tests for yourself, ensure that you have created a [.env file](#dotenv-file) pointing to a sample [rules file](#rules-file).
