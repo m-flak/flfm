@@ -35,6 +35,8 @@ def add_header(response):
         response.headers['Cache-Control'] = 'no-store'
     return response
 
+# These are globals for the Jinja2 engine
+# pylint: disable=duplicate-code
 @shell.before_request
 def make_vars_available():
     g.available_vars = {
@@ -93,6 +95,9 @@ def serve_file():
 def process():
     content_type = re.search(r"^.+;",
                              request.headers['Content-Type']).group(0).strip(';')
+
+    # Important to Logic
+    # pylint: disable=no-else-return
 
     # See: https://pqina.nl/filepond/docs/patterns/api/server/
     if content_type == 'multipart/form-data':

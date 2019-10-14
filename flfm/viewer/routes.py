@@ -9,6 +9,8 @@ from .vcache import vcache
 
 viewer = Blueprint('viewer', __name__, template_folder='templates')
 
+# These are globals for the Jinja2 engine
+# pylint: disable=duplicate-code
 @viewer.before_request
 def make_vars_available():
     g.available_vars = {

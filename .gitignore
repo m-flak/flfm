@@ -1,4 +1,7 @@
 *.pyc
+doc/README.md
+doc/flfm.service
+doc/example_nginx.conf
 flfm/secret.key
 flfm/tests/samples/sample_rules
 .env

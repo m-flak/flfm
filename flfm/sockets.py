@@ -18,7 +18,7 @@ def prepare_video(data):
             shutil.copyfile(source_video, stream_video)
 
     video_url = url_for('static', filename=data['data']['filename'],
-                         _external=True).replace('static', 'videos')
+                        _external=True).replace('static', 'videos')
 
     emit('video ready', json.dumps(dict({
         'video_url': video_url,

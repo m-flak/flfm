@@ -1,3 +1,10 @@
+"""
+    Video File Formats
+    ~~~~~~~~~~~~~~~~~~
+
+    Objects for representing Video files in FLFM.
+
+"""
 import struct
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
@@ -5,12 +12,23 @@ from io import FileIO, SEEK_SET, SEEK_CUR
 from .paths import ShellFile
 
 class NoMoovAtomException(Exception):
+    """Exception raised when there is no moov atom in a video.
+    """
     pass
 
 class NoReadVideoHeaderException(Exception):
+    """Exception raised when FLFM is unable to read a video's header.
+    """
     pass
 
 class VideoFile(ShellFile, metaclass=ABCMeta):
+    """Abstract Base Class for video files. Inherits from
+    :class:`~flfm.shell.paths.ShellFile`.
+
+    :param path_to_file: The path to the video.
+    :type path_to_file: str or **pathlib** *Path*
+    :raises ValueError: The underlying video file is not a video file.
+    """
     def __init__(self, path_to_file):
         if isinstance(path_to_file, Path):
             super().__init__(path_to_file)
@@ -25,34 +43,52 @@ class VideoFile(ShellFile, metaclass=ABCMeta):
     @property
     @abstractmethod
     def video_format(self):
+        """Format of the video.
+        """
         pass
 
     @property
     @abstractmethod
     def video_width(self):
+        """Width of the video
+        """
         pass
 
     @property
     @abstractmethod
     def video_height(self):
+        """Height of the video
+        """
         pass
 
     @property
     @abstractmethod
     def video_wxh(self):
+        """Tuple of (Width, Height) of the video
+        """
         pass
 
     @abstractmethod
     def parse_file(self):
+        """Method that is overridden by children to parse the video.
+        """
         pass
 
 class MP4File(VideoFile):
+    """Videos that are within an MP4 container. See :class:`VideoFile`.
+    """
     def __init__(self, path_to_file):
         super().__init__(path_to_file)
 
         self._width = -1
         self._height = -1
         self._parsed_header = False
+
+        #: The **ftyp____** that are supported.
+        self.supported_ftypes = (b'ftypmp42', b'ftypisom')
+        #: The **compat_brands** that are supported.
+        self.supported_brands = (b'isommp42', b'isomiso2avc1mp41',
+                                 b'isomisoavc1', b'isomavc1mp42')
 
     @property
     def video_format(self):
@@ -127,6 +163,11 @@ class MP4File(VideoFile):
         self._height = h
 
     def parse_file(self):
+        """Parses the video file, obtaining metadata that can be accessed thru
+        this class' properties.
+
+        :raises ValueError: File is not an MP4 format video.
+        """
         the_file = FileIO(self.path, 'rb')
 
         # the mimetype could be incorrect
@@ -139,7 +180,7 @@ class MP4File(VideoFile):
             ftyp_val = first_12[4:]
             # validate if mp4
             if size_dword > 0:
-                if ftyp_val != b'ftypmp42' and ftyp_val != b'ftypisom':
+                if ftyp_val not in self.supported_ftypes:
                     the_file.close()
                     raise ValueError("{} is not an MP4 video.".format(self.name))
             else:
@@ -158,10 +199,7 @@ class MP4File(VideoFile):
 
         # PARSE THE FILE!!!
         try:
-            if compat_brand == b'isommp42':
-                self._read_mp4_container(the_file, compat_brand_end)
-            # This compat_brand is similar to isommp42 so...
-            elif compat_brand == b'isomiso2avc1mp41':
+            if compat_brand in self.supported_brands:
                 self._read_mp4_container(the_file, compat_brand_end)
         except NoMoovAtomException:
             #TODO: ADD LOGGING

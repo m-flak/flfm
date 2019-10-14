@@ -1,3 +1,10 @@
+"""
+    Rules and Permissions
+    ~~~~~~~~~~~~~~~~~~~~~
+
+    Objects pertaining to the rules and permissions controlling FLFM.
+
+"""
 import collections.abc
 import os
 import re
@@ -6,8 +13,12 @@ from werkzeug.datastructures import MultiDict
 from flask import current_app, g, flash, abort
 from .paths import ShellDirectory
 
-# Generate (key, value) tuples from the rules file
 def read_rules_file(rule_file):
+    """Generate (key, value) tuples from the rules file.
+
+    :param rule_file: The ``rules`` file to read from.
+    :type rule_file: str
+    """
     lines = rule_file.readlines()
     good_lines = list(filter(lambda line: len(line) > 2, lines))
     sorted_lines = sorted(good_lines,
@@ -16,8 +27,16 @@ def read_rules_file(rule_file):
         pair = re.search(r"(\w*)\=([/\.\w]*)", line)
         yield (pair.group(1), pair.group(2))
 
-# Enforce the rules from the rules file on requested_path
 def enforce_mapped(mapped_dirs, requested_path, for_upload=False):
+    """Enforce the rules from the rules file on requested_path.
+
+    :param mapped_dirs: A collection of mapped directories.
+    :type mapped_dirs: An instance of :class:`MappedDirectories`.
+    :param requested_path: The path of the directory to check permissions of.
+    :type requested_path: str
+    :param for_upload: Whether or not to enforce for an upload. **Default: False**
+    :type for_upload: bool
+    """
     requested_md = mapped_dirs.get_mapped_dir(requested_path)
     for mapped_dir in mapped_dirs:
         if for_upload:
@@ -35,6 +54,8 @@ def enforce_mapped(mapped_dirs, requested_path, for_upload=False):
 
 
 def needs_rules(needing_method):
+    """A decorator to wrap around ``routes`` requiring rules.
+    """
     @wraps(needing_method)
     def load_rules(*args, **kwargs):
         rules_file = current_app.config['RULES_FILE']
@@ -48,6 +69,11 @@ def needs_rules(needing_method):
     return load_rules
 
 class Rules:
+    """Class representing the ``rules`` file.
+
+    :param rule_file: Path to the ``rules`` file
+    :type rule_file: str
+    """
     def __init__(self, rule_file):
         try:
             if rule_file is not None:
@@ -60,13 +86,26 @@ class Rules:
 
     @property
     def rules(self):
+        """A *werkzeug* **MultiDict** of rules.
+        """
         return self._rules
 
     @property
     def num_rules(self):
+        """The number of rules in the ``rules`` file.
+        """
         return len(self.rules)
 
 class MappedDirectory:
+    """Represents a directory that is in the rules file, having rules.
+
+    :param dir_path: Path of the directory.
+    :type dir_path: str
+    :param dir_allowed: Whether or not to allow access.
+    :type dir_allowed: bool
+    :param dir_allowuploads: Whether or not to allow uploads.
+    :type dir_allowuploads: bool
+    """
     def __init__(self, dir_path, dir_allowed, dir_allowuploads):
         self._dir_path = dir_path
         self._dir_allowed = dir_allowed
@@ -74,6 +113,14 @@ class MappedDirectory:
 
     @classmethod
     def create_from_mapping(cls, mapping, path_key):
+        """Instantiate a :class:`MappedDirectory` from a path corresponding to an
+        entry within :class:`MappedDirectories`.
+
+        :param mapping: The container to operate on.
+        :type mapping: An instance of :class:`MappedDirectories`
+        :param path_key: The path of the directory; It will be within **mapping**.
+        :type path_key: str
+        """
         try:
             allowed, allowuploads = mapping.get(path_key)
         except TypeError:
@@ -83,14 +130,20 @@ class MappedDirectory:
 
     @property
     def dir_path(self):
+        """The path of this :class:`MappedDirectory`.
+        """
         return self._dir_path
 
     @property
     def dir_allowed(self):
+        """Whether or not FLFM is allowed in this :class:`MappedDirectory`.
+        """
         return self._dir_allowed
 
     @property
     def dir_allowuploads(self):
+        """Whether or not uploads are allowed in this :class:`MappedDirectory`.
+        """
         return self._dir_allowuploads
 
     def __repr__(self):
@@ -110,6 +163,12 @@ class MappedDirectory:
         return equates is total_equates
 
     def is_in_tree(self, check_path):
+        """Is a path denoted in ``check_path`` a subdirectory or in tree??
+
+        :param check_path: The path to check against.
+        :type check_path: str
+        :returns: bool
+        """
         common_path = os.path.commonpath([self.dir_path, check_path])
         if common_path.count('\\') > 0:
             common_path = common_path.replace('\\', '/')
@@ -118,14 +177,37 @@ class MappedDirectory:
         return False
 
     def as_shell(self):
+        """Convert this :class:`MappedDirectory` into a
+        :class:`~flfm.shell.paths.ShellPath`.
+
+        :returns: A :class:`~flfm.shell.paths.ShellPath` representing this directory.
+        """
         return ShellDirectory.from_str_loc(self.dir_path)
 
+# `D` is an inherited property
+# pylint: disable=invalid-name
+
+# MappedDirectories' __iter__ must use yield
+# pylint: disable=stop-iteration-return
+
 class MappedDirectories(collections.abc.Mapping):
+    """A mapping, `collections.abc.Mapping <https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping>`_,
+    of :class:`MappedDirectory`'s.
+    Internally, the mapped directories are a dictionary of *Path*, *tuple*.
+
+    :param some_dict: A dictionary to populate this :class:`MappedDirectories`.
+    :type some_dict: dict
+    """
     def __init__(self, some_dict):
         self.D = some_dict
 
     @classmethod
     def from_rules(cls, rules):
+        """Create from a :class:`Rules`.
+
+        :param rules: The rules to create this mapping from.
+        :type rules: A :class:`Rules` instance.
+        """
         rule_dict = dict()
 
         if rules.num_rules > 0:
@@ -156,6 +238,11 @@ class MappedDirectories(collections.abc.Mapping):
 
     @classmethod
     def from_shell_path(cls, shell_path):
+        """Create from a :class:`~flfm.shell.paths.ShellPath`
+
+        :param shell_path: Create this mapping, without permission, from this.
+        :type shell_path: A :class:`~flfm.shell.paths.ShellPath` instance.
+        """
         the_dict = dict()
         default_tuple = (False, False)
         current_dir_path = shell_path.str_path
@@ -196,9 +283,26 @@ class MappedDirectories(collections.abc.Mapping):
         return super().__contains__(value)
 
     def get_mapped_dir(self, dir_path):
+        """Select a specific mapped directory from within this container.
+
+        :param dir_path: The path to select.
+        :type dir_path: str
+        :returns: A :class:`MappedDirectory`.
+
+        .. note::
+            If ``_dir_path`` does not exist, the returned :class:`MappedDirectory`
+            will have no permissions assigned. They will all be ``False``.
+
+        """
         return MappedDirectory.create_from_mapping(self, dir_path)
 
     def apply_rule_map(self, rule_map):
+        """Merge the rules of this :class:`MappedDirectories` and another.
+
+        :param rule_map: Another rule/directories map.
+        :type rule_map: Another :class:`MappedDirectories`
+        :returns: ``self``, this instance but updated.
+        """
         def length_paths(other_map):
             for md in other_map:
                 yield len(md.dir_path)
@@ -240,6 +344,8 @@ class MappedDirectories(collections.abc.Mapping):
 
     @property
     def num_allowed(self):
+        """Number of mapped directories that are allowed.
+        """
         count_allowed = 0
         for md in self:
             count_allowed += 1 if md.dir_allowed else 0
@@ -247,6 +353,8 @@ class MappedDirectories(collections.abc.Mapping):
 
     @property
     def num_disallowed(self):
+        """Number of mapped directories that are disallowed.
+        """
         count_disallowed = 0
         for md in self:
             count_disallowed += 1 if not md.dir_allowed else 0

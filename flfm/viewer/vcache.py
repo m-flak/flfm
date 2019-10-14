@@ -1,3 +1,10 @@
+"""
+    Viewer Cache for Built-In Viewer
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    The viewer cache.
+
+"""
 import base64
 import hashlib
 import os
@@ -8,6 +15,11 @@ from cachetools import LFUCache, cachedmethod
 from cachetools.keys import hashkey
 
 class VCFile:
+    """A File that has been cached.
+
+    :param filepath: The path to said file.
+    :type filepath: str
+    """
     def __init__(self, filepath):
         with open(filepath, 'rb') as file:
             self.buffer = BytesIO(file.read())
@@ -16,8 +28,21 @@ class VCFile:
             self.buffer.seek(0, SEEK_SET)
 
     def read_contents(self, **kwargs):
+        """Read the contents of the file into cached memory.
+
+        :param \**kwargs: See below
+
+        :Keyword Arguments:
+            * *decode_as* --
+              Can be: ``none``, ``base64`` , or ``utf-8``
+
+        """
         encoding = kwargs.get('decode_as', '')
-        if not len(encoding) == 0:
+
+        # Important to Logic
+        # pylint: disable=no-else-return
+
+        if encoding:
             if 'none' in encoding or not encoding:
                 return self.buffer.getvalue()
             elif 'base64' in encoding:
@@ -32,6 +57,19 @@ class VCFile:
         return int(md5.hexdigest()[0:16], 16)
 
 class ViewerCache:
+    """The viewer cache.
+
+    +-------------------------+---------------------------------------------------+
+    | Configuration Variables | Description                                       |
+    +=========================+===================================================+
+    |``VCACHE_MAX_FILESIZE``  | This controls the maximum size of the file.       |
+    +-------------------------+---------------------------------------------------+
+    |``VCACHE_MAX_FILES``     | This controls the max cacheable files at one time.|
+    +-------------------------+---------------------------------------------------+
+
+    :param app: The Flask application
+    :type app: Flask
+    """
     been_setup = False
     max_file_size = 0
     max_files = 0

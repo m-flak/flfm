@@ -55,6 +55,8 @@ def create_app(config_object):
         app.add_url_rule('/', app_route.__name__, app_route)
 
     # SOCKET-IO STUFF GOES HERE
+    # Imports required as they cause the decorators to be trigg'd
+    # pylint: disable=unused-import
     from .sockets import prepare_video, received_video
 
     return app

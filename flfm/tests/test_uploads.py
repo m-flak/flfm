@@ -1,4 +1,5 @@
 import os
+import pathlib as pl
 import werkzeug.exceptions
 from flask import current_app, url_for
 from flask_testing import TestCase
@@ -88,6 +89,13 @@ class UploadsTest(TestConfig, TestCase):
 
         with open(self.output, 'rb') as f:
             test_buffer2 = f.read()
+
+        # Test ShellFile inheritance here
+        dest_as_shell = ShellDirectory(pl.Path(test_file.destination_dir))
+        self.assertEqual(dest_as_shell.path, test_file.parent_directory())
+        self.assertTrue(test_file.is_mimetype_family('text'))
+        self.assertTrue(test_file.is_mimetype('text/plain'))
+        self.assertEqual(test_file.mimetype, 'text/plain')
 
         self.assertEqual(test_buffer, test_buffer2)
 
