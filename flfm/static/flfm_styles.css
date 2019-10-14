@@ -216,3 +216,12 @@ div#viewer-contents {
     flex-direction: row;
     flex: auto;
 }
+
+.home-header {
+    margin-left: 1rem;
+    margin-bottom: 0px;
+    font-weight: bold;
+}
+h4.home-header + hr {
+    margin-top: 1rem !important;
+}

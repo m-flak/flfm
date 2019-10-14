@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, render_template
 from flask_bootstrap import Bootstrap
 from flask_session import Session
 from flask_socketio import SocketIO
@@ -54,6 +54,9 @@ def create_app(config_object):
     else:
         app.add_url_rule('/', app_route.__name__, app_route)
 
+    # REGISTER ERROR HANDLERS
+    app.register_error_handler(403, forbidden_route)
+
     # SOCKET-IO STUFF GOES HERE
     # Imports required as they cause the decorators to be trigg'd
     # pylint: disable=unused-import
@@ -63,3 +66,6 @@ def create_app(config_object):
 
 def app_route():
     return redirect(url_for('shell.shell_default'))
+
+def forbidden_route(e):
+    return render_template('403.html'), 403

@@ -1,0 +1,29 @@
+{% extends "shell_like.html" %}
+
+{% block title %}403 Forbidden{% endblock %}
+
+{% block location %}Forbidden{% endblock %}
+
+{% block commands -%}
+    <li>
+        <a id="buttonUp" class="btn btn-primary" href="#" role="button" title="Go Up...">
+            &#x2191;
+        </a>
+    </li>
+{%- endblock %}
+
+{% block contents -%}
+    <p class="nothing-here">You are not authorized to view this location.</p>
+{%- endblock %}
+
+{% block scripts -%}
+{{ super() }}
+<script type="text/javascript">
+    /*<![CDATA[*/
+    $("a#buttonUp").on("click", function() {
+        var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
+        document.location.assign(new_url);
+    });
+    //]]>
+</script>
+{%- endblock %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "shell_like.html" %}
 {% import "bootstrap/utils.html" as utils %}
 {% import "links.html" as links %}
 {% import "misc.html" as misc %}
@@ -14,111 +14,100 @@
     <link href="{{ url_for('static', filename='video-js.min.css') }}" rel="stylesheet">
 {%- endblock %}
 
-{% block body -%}
-<div id="layout">
- <div class="container">
-  <div class="fl-row">
-      <div class="card full-card clear-card j-center">
-          <h1>{{ g.available_vars.banner_string }}</h1>
-      </div>
-  </div>
+{% block banner %}{{ g.available_vars.banner_string }}{% endblock %}
+
+{% block flashblock -%}
   {% set flashies = get_flashed_messages(with_categories=True) -%}
   {%- if flashies|length() > 0 %}
   <div class="fl-row">
       {{ utils.flashed_messages(messages=flashies) }}
   </div>
   {% endif -%}
-  <div class="fl-row">
-      <div id="location-bar" class="card full-card card-shadow j-center">
-          {%- set cf_length = current_file|length() %}
-          <h4 data-strlen="{{ cf_length }}">{{ current_file }}</h4>
-          <div id="commands">
-              <ul>
-                  <li>
-                      <span class="btn btn-primary" title="Return to Directory..." role="button">
-                          {{ links.shell_path_link('shell.shell_view', current_dir, '←') }}
-                      </span>
-                  </li>
-                  <li>
-                      <span class="btn btn-primary" title="Download File..." role="button">
-                          {{ links.shell_file_link('shell.serve_file', current_file, 'Download', True) }}
-                      </span>
-                  </li>
-              </ul>
-          </div>
-      </div>
-  </div>
-  <div class="fl-row">
-      <div class="card full-card card-shadow j-center">
-          {% call misc.find_mimetype_part(mimetype, 'text') -%}
+{%- endblock %}
+
+{% block location_element -%}
+    {%- set cf_length = current_file|length() %}
+    <h4 data-strlen="{{ cf_length }}">{{ current_file }}</h4>
+{%- endblock %}
+
+{% block commands -%}
+    <li>
+        <span class="btn btn-primary" title="Return to Directory..." role="button">
+            {{ links.shell_path_link('shell.shell_view', current_dir, '←') }}
+        </span>
+    </li>
+    <li>
+        <span class="btn btn-primary" title="Download File..." role="button">
+            {{ links.shell_file_link('shell.serve_file', current_file, 'Download', True) }}
+        </span>
+    </li>
+{%- endblock %}
+
+{% block contents -%}
+      {% call misc.find_mimetype_part(mimetype, 'text') -%}
+        {% if was_cacheable -%}
+            <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
+        {% else -%}
+            <pre id="viewer-contents">Loading. This may take a while...</pre>
+        {%- endif %}
+        {{ script.declare_string_var('viewer_type', 'text') }}
+        {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+        {{ script.declare_literal_var('image_url', 'null') }}
+      {%- endcall %}
+      {% call misc.find_mimetype_part(mimetype, 'image') -%}
+        <div id="viewer-contents">
             {% if was_cacheable -%}
-                <pre id="viewer-contents">{{ current_contents.read_contents(decode_as='utf-8') }}</pre>
-            {% else -%}
-                <pre id="viewer-contents">Loading. This may take a while...</pre>
-            {%- endif %}
-            {{ script.declare_string_var('viewer_type', 'text') }}
-            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
-            {{ script.declare_literal_var('image_url', 'null') }}
-          {%- endcall %}
-          {% call misc.find_mimetype_part(mimetype, 'image') -%}
-            <div id="viewer-contents">
-                {% if was_cacheable -%}
-                    {% if cache_id != -1 -%}
-                        <img class="viewer-image" alt="{{ current_file }}" src="{{ [url_for('viewer.fetch', cacheid=cache_id), '?mimetype=', mimetype]|join }}"/>
-                    {% else -%}
-                        <img class="viewer-image" alt="{{ current_file }}" />
-                        {%- set was_cacheable = False %}
-                    {%- endif %}
-                {%- else -%}
+                {% if cache_id != -1 -%}
+                    <img class="viewer-image" alt="{{ current_file }}" src="{{ [url_for('viewer.fetch', cacheid=cache_id), '?mimetype=', mimetype]|join }}"/>
+                {% else -%}
                     <img class="viewer-image" alt="{{ current_file }}" />
+                    {%- set was_cacheable = False %}
                 {%- endif %}
-                <div class="viewer-image-controls">
-                    <a href="#viewer-contents" id="previous-file" title="Previous Image...">
-                        <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
-                    </a>
-                    <a href="#viewer-contents" id="play-files" title="Play Slideshow...">
-                        <img src="{{ url_for('static', filename='flfm_play.gif') }}" />
-                    </a>
-                    <a href="#viewer-contents" id="stop-files" title="Stop Slideshow..." class="hidden invisible">
-                        <img src="{{ url_for('static', filename='flfm_stop.gif') }}" />
-                    </a>
-                    <a href="#viewer-contents" id="next-file" title="Next Image...">
-                        <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
-                    </a>
-                </div>
+            {%- else -%}
+                <img class="viewer-image" alt="{{ current_file }}" />
+            {%- endif %}
+            <div class="viewer-image-controls">
+                <a href="#viewer-contents" id="previous-file" title="Previous Image...">
+                    <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
+                </a>
+                <a href="#viewer-contents" id="play-files" title="Play Slideshow...">
+                    <img src="{{ url_for('static', filename='flfm_play.gif') }}" />
+                </a>
+                <a href="#viewer-contents" id="stop-files" title="Stop Slideshow..." class="hidden invisible">
+                    <img src="{{ url_for('static', filename='flfm_stop.gif') }}" />
+                </a>
+                <a href="#viewer-contents" id="next-file" title="Next Image...">
+                    <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
+                </a>
             </div>
-            {{ script.declare_string_var('viewer_type', 'image') }}
-            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
-            <script type="text/javascript">
-                var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
-            </script>
-          {%- endcall %}
-          {% call misc.find_mimetype_part(mimetype, 'video') -%}
-            <div id="viewer-contents">
-              <div class="video-holder">
-                <video id="viewer-video" class="video-js vjs-fill" controls preload="auto"
-                       data-setup='{}'>
-                </video>
-              </div>
-                <div class="viewer-video-controls">
-                    <a href="#viewer-contents" id="previous-file" title="Previous Video...">
-                        <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
-                    </a>
-                    <p>&nbsp;</p>
-                    <a href="#viewer-contents" id="next-file" title="Next Video...">
-                        <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
-                    </a>
-                </div>
+        </div>
+        {{ script.declare_string_var('viewer_type', 'image') }}
+        {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+        <script type="text/javascript">
+            var image_url = `{{ links.shell_file_raw_link('shell.serve_file', current_file, True) }}`;
+        </script>
+      {%- endcall %}
+      {% call misc.find_mimetype_part(mimetype, 'video') -%}
+        <div id="viewer-contents">
+          <div class="video-holder">
+            <video id="viewer-video" class="video-js vjs-fill" controls preload="auto"
+                   data-setup='{}'>
+            </video>
+          </div>
+            <div class="viewer-video-controls">
+                <a href="#viewer-contents" id="previous-file" title="Previous Video...">
+                    <img src="{{ url_for('static', filename='flfm_rewind.gif') }}" />
+                </a>
+                <p>&nbsp;</p>
+                <a href="#viewer-contents" id="next-file" title="Next Video...">
+                    <img src="{{ url_for('static', filename='flfm_fastfw.gif') }}" />
+                </a>
             </div>
-            {{ script.declare_string_var('viewer_type', 'video') }}
-            {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
-            {{ script.declare_literal_var('image_url', 'null') }}
-          {%- endcall %}
-      </div>
-  </div>
- </div>
-</div>
-{{ super() }}
+        </div>
+        {{ script.declare_string_var('viewer_type', 'video') }}
+        {{ script.declare_literal_var('viewer_srv_cache', was_cacheable) }}
+        {{ script.declare_literal_var('image_url', 'null') }}
+      {%- endcall %}
 {%- endblock %}
 
 {% block scripts -%}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block body -%}
+<div id="layout">
+ <div class="container">
+  <div class="fl-row">
+      <div class="card full-card clear-card j-center">
+          <h1>{% block banner %}Flask File Manager{% endblock %}</h1>
+      </div>
+  </div>
+  {% block flashblock %}
+  {% endblock %}
+  <div class="fl-row">
+      <div id="location-bar" class="card full-card card-shadow j-center">
+          {% block location_element -%}
+          <h4>{% block location %} {% endblock %}</h4>
+          {%- endblock location_element -%}
+          <div id="commands">
+              <ul>
+              {% block commands %}
+
+              {% endblock %}
+              </ul>
+          </div>
+      </div>
+  </div>
+  <div class="fl-row">
+      <div class="card full-card card-shadow j-center">
+          {% block contents %}
+          {% endblock %}
+      </div>
+  </div>
+ </div>
+</div>
+  {% block modals %}
+  {% endblock modals %}
+{{ super() }}
+{%- endblock %}

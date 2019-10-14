@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "shell_like.html" %}
 {% import "bootstrap/utils.html" as utils %}
 {% import "links.html" as links %}
 {% import "scripting.html" as scripting %}
@@ -8,98 +8,87 @@
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/filepond@4.5.0/dist/filepond.min.css" />
 {%- endblock %}
 
-{% block body -%}
-<div id="layout">
- <div class="container">
-  <div class="fl-row">
-      <div class="card full-card clear-card j-center">
-          <h1>{{ g.available_vars.banner_string }}</h1>
-      </div>
-  </div>
+{% block banner %}{{ g.available_vars.banner_string }}{% endblock %}
+
+{% block flashblock -%}
   {% set flashies = get_flashed_messages(with_categories=True) -%}
   {%- if flashies|length() > 0 %}
   <div class="fl-row">
       {{ utils.flashed_messages(messages=flashies) }}
   </div>
   {% endif -%}
-  <div class="fl-row">
-      <div id="location-bar" class="card full-card card-shadow j-center">
-          {%- set wai_length = whereami|length() %}
-          <h4 data-strlen="{{ wai_length }}">{{ whereami }}</h4>
-          <div id="commands">
-              <ul>
-                  <li>
-                      <a id="buttonUp" class="btn btn-primary" href="#" role="button" title="Go Up...">
-                          &#x2191;
-                      </a>
-                  </li>
-                  <li>
-                      <a class="btn btn-primary fl-settings" href="#" role="button" title="Settings..." data-toggle="modal" data-target="#settingsModal">
-                          <img src="{{ url_for('static', filename='flfm_settings.gif') }}" />
-                      </a>
-                  </li>
-                  <li>
-                      <a class="btn btn-primary" id="buttonUpload" href="#" role="button" title="Upload File..." data-toggle="modal" data-target="#uploadModal">
-                          Upload
-                      </a>
-                  </li>
-              </ul>
-          </div>
-      </div>
-  </div>
-  <div class="fl-row">
-      <div class="card full-card card-shadow j-center">
-	  {%- if cwd_mapping.dir_allowed %}
-          {%- if folder_contents|length() != 0 %}
-          <table class="directory-list">
-          <thead>
-              <tr>
-                  <th id="header-contents" colspan="2">Contents</th>
-                  <th id="header-size" colspan="1">Size <i>(in bytes)</i></th>
-              </tr>
-          </thead>
-          <tbody>
-          {%- for content in folder_contents %}
-            <tr>
-                <td>
-                {%- if content.file %}
-                <img src="{{ url_for('static', filename='flfm_file.gif') }}"
-                    alt="File" title="File" />
-                {% elif content.directory %}
-                <img src="{{ url_for('static', filename='flfm_folder.gif') }}"
-                    alt="Directory" title="Directory" />
-                {% endif -%}
-                </td>
-                <td>
-                    {%- if content.directory %}
-                        {% set paragraph_caption -%}
-                            <p>{{ content.name }}</p>
-                        {%- endset %}
-                        {{ links.shell_path_link('shell.shell_view', content.uri_path, paragraph_caption, False) }}
-                    {%- else -%}
-                        {% set paragraph_caption -%}
-                            <p>{{ content.name }}</p>
-                        {%- endset %}
-                        {{ links.shell_file_link('shell.serve_file', content.path, paragraph_caption) }}
-                    {% endif -%}
-                </td>
-                <td>
-                    <p>{{ content.size }}</p>
-                </td>
-            </tr>
-          {% endfor -%}
-          </tbody>
-          </table>
-          {%- else %}
-          <p class="nothing-here">There's nothing here...</p>
+{%- endblock %}
+
+{% block location_element -%}
+    {%- set wai_length = whereami|length() %}
+    <h4 data-strlen="{{ wai_length }}">{{ whereami }}</h4>
+{%- endblock %}
+
+{% block commands -%}
+    <li>
+        <a id="buttonUp" class="btn btn-primary" href="#" role="button" title="Go Up...">
+            &#x2191;
+        </a>
+    </li>
+    <li>
+        <a class="btn btn-primary fl-settings" href="#" role="button" title="Settings..." data-toggle="modal" data-target="#settingsModal">
+            <img src="{{ url_for('static', filename='flfm_settings.gif') }}" />
+        </a>
+    </li>
+    <li>
+        <a class="btn btn-primary" id="buttonUpload" href="#" role="button" title="Upload File..." data-toggle="modal" data-target="#uploadModal">
+            Upload
+        </a>
+    </li>
+{%- endblock %}
+
+{% block contents -%}
+    {%- if folder_contents|length() != 0 %}
+    <table class="directory-list">
+    <thead>
+        <tr>
+            <th id="header-contents" colspan="2">Contents</th>
+            <th id="header-size" colspan="1">Size <i>(in bytes)</i></th>
+        </tr>
+    </thead>
+    <tbody>
+    {%- for content in folder_contents %}
+      <tr>
+          <td>
+          {%- if content.file %}
+          <img src="{{ url_for('static', filename='flfm_file.gif') }}"
+              alt="File" title="File" />
+          {% elif content.directory %}
+          <img src="{{ url_for('static', filename='flfm_folder.gif') }}"
+              alt="Directory" title="Directory" />
           {% endif -%}
-	  {%- else %}
-	  <p class="nothing-here">You are not authorized to view this location.</p>
-	  {% endif -%}
-      </div>
-  </div>
- </div>
-</div>
+          </td>
+          <td>
+              {%- if content.directory %}
+                  {% set paragraph_caption -%}
+                      <p>{{ content.name }}</p>
+                  {%- endset %}
+                  {{ links.shell_path_link('shell.shell_view', content.uri_path, paragraph_caption, False) }}
+              {%- else -%}
+                  {% set paragraph_caption -%}
+                      <p>{{ content.name }}</p>
+                  {%- endset %}
+                  {{ links.shell_file_link('shell.serve_file', content.path, paragraph_caption) }}
+              {% endif -%}
+          </td>
+          <td>
+              <p>{{ content.size }}</p>
+          </td>
+      </tr>
+    {% endfor -%}
+    </tbody>
+    </table>
+    {%- else %}
+    <p class="nothing-here">There's nothing here...</p>
+    {% endif -%}
+{%- endblock %}
+
+{% block modals -%}
 <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -169,7 +158,6 @@
         </div>
     </div>
 </div>
-{{ super() }}
 {%- endblock %}
 
 {% block scripts -%}
