@@ -6,6 +6,7 @@
 
 """
 import collections.abc
+import copy
 import os
 import re
 from functools import wraps
@@ -94,7 +95,88 @@ class Rules:
     def num_rules(self):
         """The number of rules in the ``rules`` file.
         """
-        return len(self.rules)
+        rule_keys = ('Allowed', 'AllowUpload', 'AllowUploads', 'Disallowed',
+                     'DisAllowed')
+        count_o_rules = 0
+
+        for key, count_us in self._rules.lists():
+            if key in rule_keys:
+                count_o_rules += len(count_us)
+
+        return count_o_rules
+
+class VirtualRules(Rules):
+    """Mutable version of :class:`Rules`.
+
+    Construction from a file in this derivation is handled by ``template`` param.
+    To copy from a :class:`Rules` use :meth:`make_virtual`.
+
+    :param template: Identical to the ``rule_file`` param in :class:`Rules`.
+    :type template: str
+    """
+    def __init__(self, template=None):
+        Rules.__init__(self, template)
+
+    def _remove_item(self, key, value):
+        value_list = self._rules.poplist(key)
+
+        if not value_list:
+            return
+
+        for val in value_list:
+            if val == value:
+                continue
+            self._rules.add(key, val)
+
+    @classmethod
+    def make_virtual(cls, rules_class):
+        """Converts an immutable :class:`Rules` into a mutable :class:`VirtualRules`.
+
+        :param rules_class: What to convert.
+        :type rules_class: Instance of :class:`Rules`
+        """
+        now_virtual = cls(None)
+        now_virtual._rules = copy.copy(rules_class._rules)
+        return now_virtual
+
+    def allowed(self, directory, remove=False):
+        """Add or remove an *Allowed* rule for ``directory``.
+
+        :param directory: The directory to create this rule for.
+        :type directory: str
+        :param remove: Remove this rule for ``directory``. **Default:** *False*.
+        :type remove: bool
+        """
+        if remove:
+            self._remove_item('Allowed', directory)
+            return
+        self._rules.add('Allowed', directory)
+
+    def allow_uploads(self, directory, remove=False):
+        """Add or remove an *Allowed* rule for ``directory``.
+
+        :param directory: The directory to create this rule for.
+        :type directory: str
+        :param remove: Remove this rule for ``directory``. **Default:** *False*.
+        :type remove: bool
+        """
+        if remove:
+            self._remove_item('AllowUploads', directory)
+            return
+        self._rules.add('AllowUploads', directory)
+
+    def disallowed(self, directory, remove=False):
+        """Add or remove an *Allowed* rule for ``directory``.
+
+        :param directory: The directory to create this rule for.
+        :type directory: str
+        :param remove: Remove this rule for ``directory``. **Default:** *False*.
+        :type remove: bool
+        """
+        if remove:
+            self._remove_item('Disallowed', directory)
+            return
+        self._rules.add('Disallowed', directory)
 
 class MappedDirectory:
     """Represents a directory that is in the rules file, having rules.
