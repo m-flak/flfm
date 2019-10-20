@@ -225,3 +225,28 @@ div#viewer-contents {
 h4.home-header + hr {
     margin-top: 1rem !important;
 }
+
+.user-bar h5 {
+    color: white;
+}
+.user-bar {
+    margin-bottom: 1.5em;
+    min-width: 100%;
+    width: auto;
+}
+.user-bar div:first-child {
+    padding: 0 8px 0 8px;
+    background-color: darkblue;
+    min-width: 100%;
+    width: auto;
+}
+.welcome-user {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+.user-actions {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}

@@ -1,13 +1,17 @@
 import os
 from flask import Flask, redirect, url_for, render_template
 from flask_bootstrap import Bootstrap
+from flask_login import LoginManager
 from flask_session import Session
 from flask_socketio import SocketIO
+from flask_sqlalchemy import SQLAlchemy
 from .shell import shell
 from .viewer import viewer, vcache
 
+db = SQLAlchemy()
 bootstrap = Bootstrap()
 e_session = Session()
+login = LoginManager()
 socketio = SocketIO()
 
 def format_root(*args, **kwargs):
@@ -35,8 +39,18 @@ def create_app(config_object):
         secret_key = key.read()
         app.secret_key = secret_key
 
+    # Setup database URI
+    app.config['SQLALCHEMY_DATABASE_URI'] = '{0}://{1}:{2}@{3}/{4}'.\
+                                            format(app.config.get('DB_SCHEMA'),
+                                                   app.config.get('DB_USERNAME'),
+                                                   app.config.get('DB_PASSWORD'),
+                                                   app.config.get('DB_HOST'),
+                                                   app.config.get('DB_DATABASE'))
+
     # Setup extensions
+    db.init_app(app)
     bootstrap.init_app(app)
+    login.init_app(app)
     e_session.init_app(app)
     socketio.init_app(app)
 
@@ -61,6 +75,8 @@ def create_app(config_object):
     # Imports required as they cause the decorators to be trigg'd
     # pylint: disable=unused-import
     from .sockets import prepare_video, received_video
+    # DATABASE MODELS
+    from flfm import models
 
     return app
 

@@ -3,6 +3,8 @@ doc/README.md
 doc/flfm.service
 doc/example_nginx.conf
 flfm/secret.key
+migrations/*.pyc
+migrations/versions/*.py
 flfm/tests/samples/sample_rules
 .env
 banner

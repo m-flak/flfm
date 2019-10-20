@@ -1,6 +1,10 @@
 {% extends "base.html" %}
+{% import "bar.html" as user_bar %}
 
 {% block body -%}
+    {% block navbar -%}
+        {{ user_bar.create_user_bar() }}
+    {%- endblock navbar %}
 <div id="layout">
  <div class="container">
   <div class="fl-row">

@@ -13,6 +13,7 @@ Flask File Manager (flfm) is a WSGI application written in Python.
 **Table of Contents**
 * [Configuring flfm](#configuring-flfm)<br/>1. [.env file](#dotenv-file)<br/>2. [rules file](#rules-file)
 * [Before Using flfm](#before-using-flfm)
+* [MySQL Configuration](#mysql-configuration)
 * [Deploying flfm](#deploying-flfm)
 * [Running Tests](#running-tests)
 * [Special Thanks](#special-thanks)
@@ -42,6 +43,13 @@ VIEWER_VIDEO_DIRECTORY=/var/cache/videos
 # Or use one from a file (limit one line)
 ##BANNER_TYPE="file"
 ##BANNER=/etc/flfm.d/banner
+
+# DATABASE
+DB_SCHEMA="mysql"
+DB_USERNAME="flfm_user"
+DB_PASSWORD="PASSWORD"
+DB_HOST="localhost"
+DB_DATABASE="flfm"
 ```
 **Explanation:**<br/>
 ```RULES_FILE``` - _the location of the rules file_
@@ -51,11 +59,13 @@ It should be in a secure location such as /etc and also be read-only.
 
 ##### rules file
 The rules file is plain text and does not support comments. Here is an example:
+
 ```
 Allowed=/var/www/public
 Disallowed=/var/www/public/private
 AllowUploads=/var/www/public/incoming
 ```
+
 By default, all paths are non-traversable. If you want a path on your server to be accessible, you'll need to add an **Allowed** rule.
 
 You can explicitly restrict subdirectories within an allowed directory by specifying a **Disallowed** rule with the fully-qualified path to that subdirectory.
@@ -74,6 +84,21 @@ When it comes to the nesting of rules, **do not** nest an _Allowed_ rule in a _D
 Configuring the rules and creating a dot-env file is not quite enough to get started with flfm.
 Before using flfm, you'll need to _**generate the secret key**_.
 This is easily accomplished with running ```make``` in the project root directory _(requires bash & openssl)_.
+
+### MySQL Configuration
+MySQL is used to store user credentials. Before you can run migrations, perform the initial setup on your MySQL server. To illustrate:
+
+```SQL
+CREATE DATABASE flfm;
+CREATE USER 'flfm_user'@'localhost' IDENTIFIED WITH mysql_native_password BY '<PASSWORD_HERE>';
+GRANT ALL ON flfm.* TO 'flfm_user'@'localhost';
+```
+
+Once this is done, you can run migrations to create the table schemas and what-all for _flfm_.
+
+###### Other SQL Backends:
+
+Hate MySQL? Think it's overkill?? While there's no guarantee of compatibility, you can easily change the SQL backend. Look at the _DATABASE_ section of the [.env file](#dotenv-file).
 
 ### Deploying flfm
 ###### systemd Service
