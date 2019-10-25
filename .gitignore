@@ -12,3 +12,4 @@ rules
 flfmenv/*
 flask_session/*
 videos/*
+homes/*

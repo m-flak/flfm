@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import (
     StringField, PasswordField, SubmitField
 )
-from wtforms.validators import DataRequired, Regexp, ValidationError
+from wtforms.validators import DataRequired, Regexp, ValidationError, EqualTo
 
 class NegativeRegexp(Regexp):
     def __call__(self, form, field, message=None):
@@ -19,5 +19,14 @@ class NegativeRegexp(Regexp):
 class LoginForm(FlaskForm):
     username = StringField("User Name", validators=[DataRequired(),
                                                     NegativeRegexp(r"\\+|\/+|\*+|\?+|\"+|<+|>+|\|+|\!+")])
-    password = PasswordField("Password")
+    password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Login")
+
+class RegisterForm(FlaskForm):
+    username = StringField("User Name", validators=[DataRequired(),
+                                                    NegativeRegexp(r"\\+|\/+|\*+|\?+|\"+|<+|>+|\|+|\!+")])
+    password = PasswordField("Password", validators=[DataRequired()])
+    password_again = PasswordField("Confirm Password",
+                                   validators=[DataRequired(),
+                                               EqualTo('password')])
+    submit = SubmitField("Register")

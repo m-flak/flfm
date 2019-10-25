@@ -18,6 +18,9 @@ class Config:
                                       os.path.join(os.getcwd(),
                                                    'flask_session'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    USERS_HOME_FOLDERS = os.environ.get('USERS_HOME_FOLDERS',
+                                        os.path.join(os.getcwd(),
+                                                     'homes'))
     RULES_FILE = os.environ.get('RULES_FILE', None)
     VCACHE_MAX_FILESIZE = 1048576
     VCACHE_MAX_FILES = 16

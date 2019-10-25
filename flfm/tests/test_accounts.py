@@ -1,9 +1,11 @@
+import os
+import shutil
 from flask import current_app, url_for
 from flask_login import current_user, login_user
 from flask_testing import TestCase
 from flfm import create_app, db
 from flfm.models import User
-from flfm.accounts.forms import LoginForm
+from flfm.accounts.forms import LoginForm, RegisterForm
 from .config import Config
 
 class TestConfig(Config):
@@ -18,10 +20,22 @@ class TestConfig(Config):
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 
 class AccountsTesting(TestConfig, TestCase):
+    def __init__(self, *args, **kwargs):
+        super(AccountsTesting, self).__init__(*args, **kwargs)
+
+        our_path = os.path.abspath(os.path.dirname(__file__))
+
+        self.user_homes = os.path.join(
+            our_path,
+            'output',
+            'homes'
+        )
+
     def create_app(self):
         app = create_app(self)
         # the .env still overwrites fgsfds
         app.config['DB_DATABASE'] = 'flfm_tests'
+        app.config['USERS_HOME_FOLDERS'] = self.user_homes
         return app
 
     def setUp(self):
@@ -44,6 +58,12 @@ class AccountsTesting(TestConfig, TestCase):
     def tearDown(self):
         db.session.remove()
         db.drop_all()
+
+        if os.path.exists(os.path.join(self.user_homes, 'test_user')):
+            shutil.rmtree(os.path.join(self.user_homes, 'test_user'))
+
+        if os.path.exists(os.path.join(self.user_homes, 'test_admin')):
+            shutil.rmtree(os.path.join(self.user_homes, 'test_admin'))
 
     def test_users_present_in_db(self):
         user1 = User.query.filter_by(name='test_user').first()
@@ -129,3 +149,22 @@ class AccountsTesting(TestConfig, TestCase):
         current_app.config['ACCOUNT_REGISTRATION_ENABLED'] = False
         response = self.client.get(url_for('accounts.register'))
         self.assertStatus(response, 501)
+
+    def test_register_account(self):
+        current_app.config['ACCOUNT_REGISTRATION_ENABLED'] = True
+
+        with self.client as c:
+            register_form = RegisterForm()
+            response = c.post(url_for('accounts.register'), data={
+                register_form.username.name: 'test_register',
+                register_form.password.name: 'registerword11',
+                register_form.password_again.name: 'registerword11',
+            }, follow_redirects=True)
+
+            self.assert200(response)
+
+    def test_home_folder_creation(self):
+        user = User.query.filter_by(name='test_user').first()
+        user_home = os.path.join(self.user_homes, 'test_user')
+        login_user(user)
+        self.assertTrue(os.path.exists(user_home))

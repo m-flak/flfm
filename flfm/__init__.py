@@ -86,6 +86,8 @@ def create_app(config_object):
     from .sockets import prepare_video, received_video
     # DB models
     from flfm import models
+    # USER LOGIN EVENTS
+    from .login_events import user_logon_event
 
     return app
 

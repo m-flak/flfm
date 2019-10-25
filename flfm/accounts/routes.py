@@ -4,8 +4,9 @@ from flask import (
 )
 from flask_login import current_user, login_user, logout_user
 from flfm.misc import get_banner_string
+# i hate how flask-sqlalchemy forces me to do this >:(
 import flfm as f
-from .forms import LoginForm
+from .forms import LoginForm, RegisterForm
 
 accounts = Blueprint('accounts', __name__, template_folder='templates')
 
@@ -54,4 +55,20 @@ def register():
     if not g.available_vars['registration_enabled']:
         abort(501)
 
-    return render_template('register.html')
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = f.models.User.query.filter_by(name=form.username.data).first()
+        if user is None:
+            new_user = f.models.User(name=form.username.data, password='',
+                                     admin=False, enabled=False)
+            new_user.set_password(form.password.data)
+            f.db.session.add(new_user)
+            f.db.session.commit()
+            flash("""Your account has been created. However, you'll need to wait
+                  for an administrator to activate your account.
+                  """)
+            return redirect(url_for('shell.shell_default'))
+        # Username exists :O
+        flash("The user name you've specified already exists. Try Again...")
+
+    return render_template('register.html', form=form)

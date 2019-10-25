@@ -1,0 +1,35 @@
+{% extends "shell_like.html" %}
+{% import "bootstrap/utils.html" as utils %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block banner %}{{ g.available_vars.banner_string }}{% endblock %}
+
+{% block flashblock -%}
+  {% set flashies = get_flashed_messages(with_categories=True) -%}
+  {%- if flashies|length() > 0 %}
+  <div class="fl-row">
+      {{ utils.flashed_messages(messages=flashies) }}
+  </div>
+  {% endif -%}
+{%- endblock %}
+
+{% block location %}Register New Account{% endblock %}
+
+{% block navbar -%}
+    {# NO USER BAR FOR REGISTER PAGES. #}
+{%- endblock %}
+
+{% block contents -%}
+<div id="logon-page">
+    <div class="col-xs-4 f-grow-2">
+        <p>&nbsp;</p>
+    </div>
+    <div class="login-container f-grow-1">
+        <h3>Register New Account</h3>
+        {{ wtf.quick_form(form) }}
+    </div>
+    <div class="col-xs-4 f-grow-2 right-float">
+        <p>&nbsp;</p>
+    </div>
+</div>
+{%- endblock %}
