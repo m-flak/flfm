@@ -2,8 +2,10 @@ import os
 from flask_dotenv import DotEnv
 
 class Config:
+    ACCOUNT_REGISTRATION_ENABLED = False
     BANNER = 'Flask File Manager'
     BANNER_TYPE = 'string'
+    BYPASS_DOTENV = False
     DB_SCHEMA = os.environ.get('DB_SCHEMA', 'mysql')
     DB_USERNAME = os.environ.get('DB_USERNAME', '')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', '')

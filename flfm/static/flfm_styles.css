@@ -46,6 +46,17 @@ th#header-size {
     justify-content: center;
 }
 
+.f-grow-1 {
+    flex-grow: 1;
+}
+.f-grow-2 {
+    flex-grow: 2;
+}
+
+.right-float {
+    float: right !important;
+}
+
 .container {
     position: relative;
     margin-left: auto;
@@ -249,4 +260,12 @@ h4.home-header + hr {
     position: absolute;
     top: 0px;
     right: 0px;
+}
+
+#logon-page {
+    display: flex;
+    flex-direction: row;
+}
+.login-container {
+    padding-bottom: 2.5em;
 }

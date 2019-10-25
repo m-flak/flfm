@@ -105,6 +105,10 @@ class Rules:
 
         return count_o_rules
 
+# C'mon pylint VirtualRules derives from Rules
+# Derived classes get them juicy protecteds
+# pylint: disable=protected-access
+
 class VirtualRules(Rules):
     """Mutable version of :class:`Rules`.
 

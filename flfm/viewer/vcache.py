@@ -27,6 +27,8 @@ class VCFile:
             self.file_bytes = self.buffer.tell()
             self.buffer.seek(0, SEEK_SET)
 
+    # pylint: disable=anomalous-backslash-in-string
+
     def read_contents(self, **kwargs):
         """Read the contents of the file into cached memory.
 

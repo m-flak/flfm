@@ -16,6 +16,8 @@ def make_vars_available():
     g.available_vars = {
         'app_root': current_app.config.get('APPLICATION_ROOT', '/'),
         'banner_string': get_banner_string(current_app),
+        'registration_enabled': current_app.config.get('ACCOUNT_REGISTRATION_ENABLED',
+                                                       False),
     }
 
 @viewer.route('/view')

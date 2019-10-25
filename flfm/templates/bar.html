@@ -1,16 +1,54 @@
 {% macro create_user_bar() -%}
+    {%- set url_login = url_for('accounts.login') %}
+    {%- set url_register = url_for('accounts.register') %}
+    {%- set url_logout = url_for('accounts.logout') %}
     <header class="user-bar">
         <div>
             <div class="welcome-user">
+            {% if the_cur_user() -%}
+                {% if the_cur_user().is_authenticated -%}
+                    <h5>Welcome, <i>{{ the_cur_user().name }}</i></h5>
+                {%- else -%}
+                    <h5>Welcome, <i>Guest</i></h5>
+                {%- endif %}
+            {%- else -%}
                 <h5>Welcome, <i>Guest</i></h5>
+            {%- endif %}
             </div>
             <div class="user-actions">
-                <a class="btn btn-primary" href="#" role="button" title="Login">
+            {% if the_cur_user() -%}
+                {% if the_cur_user().is_authenticated -%}
+                    <a class="btn btn-info" href="{{ url_logout }}" role="button" title="Logout">
+                        Logout
+                    </a>
+                {%- else -%}
+                    <a class="btn btn-primary" href="{{ url_login }}" role="button" title="Login">
+                        Login
+                    </a>
+                    {% if g.available_vars.registration_enabled -%}
+                        <a class="btn btn-info" href="{{ url_register }}" role="button" title="Register">
+                            Register
+                        </a>
+                    {%- else -%}
+                    <a class="btn btn-info disabled" href="#" role="button" title="Register">
+                        Register
+                    </a>
+                    {%- endif %}
+                {%- endif %}
+            {%- else -%}
+                <a class="btn btn-primary" href="{{ url_login }}" role="button" title="Login">
                     Login
                 </a>
-                <a class="btn btn-info" href="#" role="button" title="Register">
-                    Register
-                </a>
+                {% if g.available_vars.registration_enabled -%}
+                    <a class="btn btn-info" href="{{ url_register }}" role="button" title="Register">
+                        Register
+                    </a>
+                {%- else -%}
+                    <a class="btn btn-info disabled" href="#" role="button" title="Register">
+                        Register
+                    </a>
+                {%- endif %}
+            {%- endif %}
             </div>
         </div>
     </header>

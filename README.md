@@ -93,6 +93,11 @@ CREATE DATABASE flfm;
 CREATE USER 'flfm_user'@'localhost' IDENTIFIED WITH mysql_native_password BY '<PASSWORD_HERE>';
 GRANT ALL ON flfm.* TO 'flfm_user'@'localhost';
 ```
+If you're going to run tests, then also:
+```SQL
+CREATE DATABASE flfm_tests;
+GRANT ALL ON flfm_tests.* TO 'flfm_user'@'localhost';
+```
 
 Once this is done, you can run migrations to create the table schemas and what-all for _flfm_.
 

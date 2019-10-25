@@ -1,8 +1,8 @@
 {% extends "shell_like.html" %}
 
-{% block title %}403 Forbidden{% endblock %}
+{% block title %}501 Not Implemented{% endblock %}
 
-{% block location %}Forbidden{% endblock %}
+{% block location %}Not Implemented or Enabled{% endblock %}
 
 {% block navbar -%}
     {# NO USER BAR FOR ERROR PAGES #}
@@ -17,7 +17,10 @@
 {%- endblock %}
 
 {% block contents -%}
-    <p class="nothing-here">You are not authorized to view this location.</p>
+    <p class="nothing-here">The resource you've requested is either not Implemented
+     or disabled within the application's configuration.<br/>
+    If you know that this feature is implemented, check your configuration.
+    </p>
 {%- endblock %}
 
 {% block scripts -%}
@@ -25,8 +28,7 @@
 <script type="text/javascript">
     /*<![CDATA[*/
     $("a#buttonUp").on("click", function() {
-        var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
-        document.location.assign(new_url);
+        window.history.back();
     });
     //]]>
 </script>
