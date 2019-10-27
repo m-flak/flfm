@@ -1,8 +1,10 @@
+import os
 from itsdangerous import Signer
 from itsdangerous.exc import BadSignature
 from flask import current_app
 from flask_login import UserMixin
 import flfm as f
+from .shell.paths import ShellDirectory
 
 class User(UserMixin, f.db.Model):
     __tablename__ = 'users'
@@ -20,6 +22,15 @@ class User(UserMixin, f.db.Model):
     @property
     def is_admin(self):
         return self.admin
+
+    @property
+    def home_folder(self):
+        folder = os.path.join(
+            current_app.config['USERS_HOME_FOLDERS'],
+            self.name
+        )
+
+        return ShellDirectory.from_str_loc(folder).path
 
     def set_password(self, password):
         # since secret_key is read from a blob, it will be a byte string

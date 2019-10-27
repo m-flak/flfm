@@ -12,6 +12,7 @@ import re
 from functools import wraps
 from werkzeug.datastructures import MultiDict
 from flask import current_app, g, flash, abort
+from flask_login import current_user
 from .paths import ShellDirectory
 
 def read_rules_file(rule_file):
@@ -61,9 +62,17 @@ def needs_rules(needing_method):
     def load_rules(*args, **kwargs):
         rules_file = current_app.config['RULES_FILE']
         if not hasattr(g, 'fm_rules'):
-            g.fm_rules = Rules(rules_file)
-        if rules_file is None or g.fm_rules.num_rules == 0:
-            flash('Please properly configure Flask FM before using.', 'danger')
+            the_rules = Rules(rules_file)
+
+            if current_user.is_authenticated:
+                users_rules = VirtualRules.make_virtual(the_rules)
+                users_rules.allowed(current_user.home_folder)
+                users_rules.allow_uploads(current_user.home_folder)
+                the_rules = users_rules
+
+            g.fm_rules = the_rules
+
+        # RULES ARE PRIMED AND READY!
 
         return needing_method(*args, **kwargs)
 
