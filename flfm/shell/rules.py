@@ -105,6 +105,9 @@ class Rules:
 
         return count_o_rules
 
+    def __len__(self):
+        return self.num_rules
+
 # C'mon pylint VirtualRules derives from Rules
 # Derived classes get them juicy protecteds
 # pylint: disable=protected-access

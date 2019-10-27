@@ -1,3 +1,4 @@
+import os
 import pathlib
 import random
 import tempfile
@@ -16,6 +17,17 @@ class TestConfig(Config):
     PROPAGATE_EXCEPTIONS = True
 
 class RulesTest(TestConfig, TestCase):
+    def __init__(self, *args, **kwargs):
+        super(RulesTest, self).__init__(*args, **kwargs)
+
+        our_path = os.path.abspath(os.path.dirname(__file__))
+
+        self.blank_rules = os.path.join(
+            our_path,
+            'samples',
+            'blank_rules'
+        )
+
     def create_app(self):
         return create_app(self)
 
@@ -258,6 +270,13 @@ class RulesTest(TestConfig, TestCase):
         response = self.client.get(the_url,
                                    query_string=dict(f=the_d_file.path))
         self.assert403(response)
+
+    def test_blank_rules_file(self):
+        blank_rules = Rules(self.blank_rules)
+        blank_mapping = MappedDirectories.from_rules(blank_rules)
+
+        self.assertEqual(len(blank_rules), 0)
+        self.assertEqual(len(blank_mapping), 0)
 
 class VirtualRulesTest(TestConfig, TestCase):
     def create_app(self):

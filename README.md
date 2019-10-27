@@ -16,6 +16,7 @@ Flask File Manager (flfm) is a WSGI application written in Python.
 * [MySQL Configuration](#mysql-configuration)
 * [Deploying flfm](#deploying-flfm)
 * [Running Tests](#running-tests)
+* [Creating Initial Accounts](#creating-initial-accounts)
 * [Special Thanks](#special-thanks)
 
 ### Configuring flfm
@@ -25,6 +26,12 @@ First, refer to the _.env\_example_ file. You'll see the following:
 ```
 # Example .env file
 # Refer to config.py
+
+# Allow Account Registration
+ACCOUNT_REGISTRATION_ENABLED=True
+
+# Where to create users' home folders at
+USERS_HOME_FOLDERS=/var/flfm/homes
 
 # Rules file location
 RULES_FILE=/etc/flfm.d/rules
@@ -84,6 +91,8 @@ When it comes to the nesting of rules, **do not** nest an _Allowed_ rule in a _D
 Configuring the rules and creating a dot-env file is not quite enough to get started with flfm.
 Before using flfm, you'll need to _**generate the secret key**_.
 This is easily accomplished with running ```make``` in the project root directory _(requires bash & openssl)_.
+
+You'll also want to [setup the database](#mysql-configuration), [create initial accounts](#creating-initial-accounts) _(optional)_, and [deploy](#deploying-flfm).
 
 ### MySQL Configuration
 MySQL is used to store user credentials. Before you can run migrations, perform the initial setup on your MySQL server. To illustrate:
@@ -172,6 +181,15 @@ Then, from the project root directory, simply execute:
 ```
 python tests.py
 ```
+
+### Creating Initial Accounts
+FLFM supports account sessions. **_By default_**, account registration is disabled, but you can modify that in your [.env file](#dotenv-file).
+
+To create accounts, use the management script like so:
+```
+python manage.py createuser
+```
+Follow the interactive prompts to create the needed account(s) for use with FLFM.
 
 ### Special Thanks
 Special thanks go out to the following javascript libraries not listed in the project's dependencies:
