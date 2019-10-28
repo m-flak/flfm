@@ -1,0 +1,17 @@
+extraction:
+  python:
+    prepare:
+      packages:
+        - bash
+        - openssl
+    python_setup:
+      version: 3.7
+    before_index:
+      - make all
+    index:
+      exclude:
+        - .git
+        - doc
+        - nginx
+        - systemd
+
