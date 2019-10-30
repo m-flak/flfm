@@ -83,6 +83,17 @@ th#header-size {
     filter: brightness(120%);
 }
 
+.fl-btn-secondary {
+    background-color: #6C757D;
+    border-color: #6C757D;
+    color: #FFF;
+}
+.fl-btn-secondary:hover {
+    background-color: #5A6268;
+    border-color: #545B62;
+    color: #FFF;
+}
+
 span.btn, span.btn-primary {
     padding: 0;
 }
@@ -262,10 +273,37 @@ h4.home-header + hr {
     right: 0px;
 }
 
-#logon-page {
+#logon-page, #dashboard-contents {
     display: flex;
     flex-direction: row;
 }
-.login-container {
+.login-container, .dash-container {
     padding-bottom: 2.5em;
+}
+
+#dashboard-tabs {
+    display: flex;
+    background-color: #E3F1FF;
+    border: solid 2px #96A2C8;
+    border-radius: 0.75em;
+}
+.dash-tab {
+    padding: 0.5em;
+}
+#manage_us {
+    box-shadow: none;
+    border: none;
+}
+#manage_us li:nth-child(2n+1) {
+    background-color: rgba(128,128,128,0.2);
+}
+.control-label[for='manage_us'] {
+    display: none;
+}
+th > label[for^='manage_us-'] {
+    font-weight: normal;
+}
+.dash-container div.form-group {
+    height: inherit;
+    margin-bottom: -0.25em;
 }

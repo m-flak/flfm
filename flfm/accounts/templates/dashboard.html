@@ -1,0 +1,76 @@
+{% extends "shell_like.html" %}
+{% import "bootstrap/utils.html" as utils %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "scripting.html" as script %}
+
+{% block styles -%}
+{{ super() }}
+<style type="text/css">
+    ul { list-style-image: url("{{ url_for('static', filename='flfm_lil_account.gif') }}"); }
+</style>
+{%- endblock %}
+
+{% block banner %}{{ g.available_vars.banner_string }}{% endblock %}
+
+{% block flashblock -%}
+  {% set flashies = get_flashed_messages(with_categories=True) -%}
+  {%- if flashies|length() > 0 %}
+  <div class="fl-row">
+      {{ utils.flashed_messages(messages=flashies) }}
+  </div>
+  {% endif -%}
+{%- endblock %}
+
+{% block location %}User Dashboard{% endblock %}
+
+{% set dash_tabs = ['user', 'admin'] %}
+
+{% block contents -%}
+<div id="dashboard-page">
+    <div id="dashboard-tabs">
+        {%- for tab in dash_tabs %}
+            <div class="dash-tab">
+                {%- if current_tab == tab %}
+                    <a class="btn btn-primary" href="{{ url_for('accounts.dashboard', dash_tab=tab) }}" role="button" title="{{ tab }}">
+                        {{ tab }}
+                    </a>
+                {%- else -%}
+                    <a class="btn btn-secondary fl-btn-secondary" href="{{ url_for('accounts.dashboard', dash_tab=tab) }}" role="button" title="{{ tab }}">
+                        {{ tab }}
+                    </a>
+                {%- endif %}
+            </div>
+        {%- endfor %}
+    </div>
+    <div id="dashboard-contents">
+        <div class="col-xs-4 f-grow-2">
+            <p>&nbsp;</p>
+        </div>
+        {% if current_tab == 'user' -%}
+            <div class="dash-container f-grow-1">
+                <h3>Update Account Information:</h3>
+                {% if form -%}
+                    {{ wtf.quick_form(form) }}
+                {%- endif %}
+            </div>
+        {%- endif %}
+        {% if current_tab == 'admin' -%}
+            <div class="dash-container f-grow-1">
+                <h3>Manage User Accounts:</h3>
+                {% if form -%}
+                    {{ wtf.quick_form(form) }}
+                {%- endif %}
+            </div>
+        {%- endif %}
+        <div class="col-xs-4 f-grow-2 right-float">
+            <p>&nbsp;</p>
+        </div>
+    </div>
+</div>
+{%- endblock %}
+
+{% block scripts -%}
+{{ super() }}
+{{ script.declare_string_var('dashboard_tab', current_tab) }}
+<script src="{{ url_for('static', filename='flfm_dash.js') }}"></script>
+{%- endblock %}
