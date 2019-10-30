@@ -370,7 +370,11 @@ class MappedDirectories(collections.abc.Mapping):
         while True:
             if num_yielded >= len(self):
                 break
-            mapped_dir = next(iterator)
+            # guard the next()
+            try:
+                mapped_dir = next(iterator)
+            except StopIteration:
+                break
             num_yielded += 1
             yield MappedDirectory(mapped_dir, self.D[mapped_dir][0],
                                   self.D[mapped_dir][1])
@@ -379,6 +383,11 @@ class MappedDirectories(collections.abc.Mapping):
         if isinstance(value, MappedDirectory):
             return value.dir_path in self.D
         return super().__contains__(value)
+
+    def __eq__(self, other):
+        if not isinstance(other, MappedDirectories):
+            return False
+        return self.D == other.D
 
     def get_mapped_dir(self, dir_path):
         """Select a specific mapped directory from within this container.

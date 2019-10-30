@@ -58,6 +58,11 @@ class VCFile:
         md5.update(self.buffer.getvalue())
         return int(md5.hexdigest()[0:16], 16)
 
+    def __eq__(self, other):
+        if not isinstance(other, VCFile):
+            return False
+        return hash(self) == hash(other)
+
 class ViewerCache:
     """The viewer cache.
 

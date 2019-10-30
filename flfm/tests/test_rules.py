@@ -337,3 +337,19 @@ class VirtualRulesTest(TestConfig, TestCase):
 
         self.assertEqual(reg_rules.num_rules, virt_rules.num_rules)
         self.assertEqual(reg_rules.rules, virt_rules.rules)
+
+    def test_mapping_equality_inequality(self):
+        virt_rules = VirtualRules()
+        virt_rules_empty = VirtualRules()
+
+        virt_rules.allowed('/fake/path')
+        virt_rules.allow_uploads('/faker/path')
+        virt_rules.disallowed('/fakest/path')
+
+        map1 = MappedDirectories.from_rules(virt_rules)
+        map2 = MappedDirectories.from_rules(virt_rules)
+        map3 = MappedDirectories.from_rules(virt_rules_empty)
+
+        self.assertEqual(map1, map2)
+        self.assertNotEqual(map1, map3)
+        self.assertNotEqual(map2, map3)
