@@ -13,5 +13,6 @@ extraction:
         - .git
         - doc
         - nginx
+        - migrations
         - systemd
 

@@ -1,0 +1,35 @@
+{% extends "shell_like.html" %}
+
+{% block title %}501 Not Implemented{% endblock %}
+
+{% block location %}Not Implemented or Enabled{% endblock %}
+
+{% block navbar -%}
+    {# NO USER BAR FOR ERROR PAGES #}
+{%- endblock %}
+
+{% block commands -%}
+    <li>
+        <a id="buttonUp" class="btn btn-primary" href="#" role="button" title="Go Up...">
+            &#x2191;
+        </a>
+    </li>
+{%- endblock %}
+
+{% block contents -%}
+    <p class="nothing-here">The resource you've requested is either not Implemented
+     or disabled within the application's configuration.<br/>
+    If you know that this feature is implemented, check your configuration.
+    </p>
+{%- endblock %}
+
+{% block scripts -%}
+{{ super() }}
+<script type="text/javascript">
+    /*<![CDATA[*/
+    $("a#buttonUp").on("click", function() {
+        window.history.back();
+    });
+    //]]>
+</script>
+{%- endblock %}

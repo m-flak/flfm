@@ -1,24 +1,22 @@
-{% extends "base.html" %}
+{% extends "shell_like.html" %}
 {% import "bootstrap/utils.html" as utils %}
 {% import "links.html" as links %}
 
-{% block body -%}
-<div id="layout">
- <div class="container">
-  <div class="fl-row">
-      <div class="card full-card clear-card j-center">
-          <h1>{{ g.available_vars.banner_string }}</h1>
-      </div>
-  </div>
+{% block banner %}{{ g.available_vars.banner_string }}{% endblock %}
+
+{% block flashblock -%}
   {% set flashies = get_flashed_messages(with_categories=True) -%}
   {%- if flashies|length() > 0 %}
   <div class="fl-row">
       {{ utils.flashed_messages(messages=flashies) }}
   </div>
   {% endif -%}
-  <div class="fl-row">
-      <div id="contents" class="card full-card card-shadow j-center">
-          <h4>Mapped Directories:</h4>
+{%- endblock %}
+
+{% block location %}HOME{% endblock %}
+
+{% block contents -%}
+          <h4 class="home-header">Mapped Directories:</h4>
           <hr/>
           {%- if mapped_dirs|length() > 0 %}
           {%- for mapped in mapped_dirs %}
@@ -35,9 +33,4 @@
           {%- else %}
             <p class="nothing-here">There are no mapped directories.</p>
           {%- endif -%}
-      </div>
-  </div>
- </div>
-</div>
-{{ super() }}
 {%- endblock %}

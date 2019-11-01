@@ -27,6 +27,8 @@ class VCFile:
             self.file_bytes = self.buffer.tell()
             self.buffer.seek(0, SEEK_SET)
 
+    # pylint: disable=anomalous-backslash-in-string
+
     def read_contents(self, **kwargs):
         """Read the contents of the file into cached memory.
 
@@ -55,6 +57,11 @@ class VCFile:
         md5 = hashlib.md5()
         md5.update(self.buffer.getvalue())
         return int(md5.hexdigest()[0:16], 16)
+
+    def __eq__(self, other):
+        if not isinstance(other, VCFile):
+            return False
+        return hash(self) == hash(other)
 
 class ViewerCache:
     """The viewer cache.

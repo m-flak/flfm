@@ -1,0 +1,12 @@
+dl.class > dt {
+	border-bottom: solid 1px;
+	margin-left: -1rem;
+}
+
+div.section > h3, div.section > h2 {
+	border-bottom: solid 2px #3e4349;
+}
+
+dl.class > dt:first-of-type, dl.function > dt:first-of-type {
+	background-color: #e4e8ec;
+}

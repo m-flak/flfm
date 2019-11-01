@@ -1,0 +1,72 @@
+{% macro generate_dashboard_button(is_administrator) -%}
+    {% if is_administrator -%}
+        <a class="btn btn-primary" href="{{ url_for('accounts.dashboard', dash_tab='admin') }}" role="button" title="Dashboard">
+            Dashboard
+        </a>
+    {%- else -%}
+        <a class="btn btn-primary" href="{{ url_for('accounts.dashboard', dash_tab='user') }}" role="button" title="Dashboard">
+            Dashboard
+        </a>
+    {%- endif %}
+{%- endmacro %}
+{% macro create_user_bar() -%}
+    {%- set url_login = url_for('accounts.login') %}
+    {%- set url_register = url_for('accounts.register') %}
+    {%- set url_logout = url_for('accounts.logout') %}
+    {%- set url_home = url_for('shell.shell_default') %}
+    <header class="user-bar">
+        <div>
+            <div class="welcome-user">
+            {# Look around line 80-81ish in __init__.py for the def... #}
+            {% if the_cur_user() -%}
+                {% if the_cur_user().is_authenticated -%}
+                    <h5>Welcome, <i>{{ the_cur_user().name }}</i></h5>
+                {%- else -%}
+                    <h5>Welcome, <i>Guest</i></h5>
+                {%- endif %}
+            {%- else -%}
+                <h5>Welcome, <i>Guest</i></h5>
+            {%- endif %}
+            </div>
+            <div class="user-actions">
+            {% if the_cur_user() -%}
+                {% if the_cur_user().is_authenticated -%}
+                    <a class="btn btn-primary" href="{{ url_home }}" role="button" title="Home">
+                        Home
+                    </a>
+                    {{ generate_dashboard_button(the_cur_user().is_admin) }}
+                    <a class="btn btn-info" href="{{ url_logout }}" role="button" title="Logout">
+                        Logout
+                    </a>
+                {%- else -%}
+                    <a class="btn btn-primary" href="{{ url_login }}" role="button" title="Login">
+                        Login
+                    </a>
+                    {% if g.available_vars.registration_enabled -%}
+                        <a class="btn btn-info" href="{{ url_register }}" role="button" title="Register">
+                            Register
+                        </a>
+                    {%- else -%}
+                    <a class="btn btn-info disabled" href="#" role="button" title="Register">
+                        Register
+                    </a>
+                    {%- endif %}
+                {%- endif %}
+            {%- else -%}
+                <a class="btn btn-primary" href="{{ url_login }}" role="button" title="Login">
+                    Login
+                </a>
+                {% if g.available_vars.registration_enabled -%}
+                    <a class="btn btn-info" href="{{ url_register }}" role="button" title="Register">
+                        Register
+                    </a>
+                {%- else -%}
+                    <a class="btn btn-info disabled" href="#" role="button" title="Register">
+                        Register
+                    </a>
+                {%- endif %}
+            {%- endif %}
+            </div>
+        </div>
+    </header>
+{%- endmacro %}

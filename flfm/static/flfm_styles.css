@@ -46,6 +46,17 @@ th#header-size {
     justify-content: center;
 }
 
+.f-grow-1 {
+    flex-grow: 1;
+}
+.f-grow-2 {
+    flex-grow: 2;
+}
+
+.right-float {
+    float: right !important;
+}
+
 .container {
     position: relative;
     margin-left: auto;
@@ -70,6 +81,17 @@ th#header-size {
 }
 .fl-settings img {
     filter: brightness(120%);
+}
+
+.fl-btn-secondary {
+    background-color: #6C757D;
+    border-color: #6C757D;
+    color: #FFF;
+}
+.fl-btn-secondary:hover {
+    background-color: #5A6268;
+    border-color: #545B62;
+    color: #FFF;
 }
 
 span.btn, span.btn-primary {
@@ -215,4 +237,73 @@ div#viewer-contents {
 .video-holder {
     flex-direction: row;
     flex: auto;
+}
+
+.home-header {
+    margin-left: 1rem;
+    margin-bottom: 0px;
+    font-weight: bold;
+}
+h4.home-header + hr {
+    margin-top: 1rem !important;
+}
+
+.user-bar h5 {
+    color: white;
+}
+.user-bar {
+    margin-bottom: 1.5em;
+    min-width: 100%;
+    width: auto;
+}
+.user-bar div:first-child {
+    padding: 0 8px 0 8px;
+    background-color: darkblue;
+    min-width: 100%;
+    width: auto;
+}
+.welcome-user {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+.user-actions {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
+
+#logon-page, #dashboard-contents {
+    display: flex;
+    flex-direction: row;
+}
+.login-container, .dash-container {
+    padding-bottom: 2.5em;
+}
+
+#dashboard-tabs {
+    display: flex;
+    background-color: #E3F1FF;
+    border: solid 2px #96A2C8;
+    border-radius: 0.75em;
+}
+.dash-tab {
+    padding: 0.5em;
+}
+#manage_us {
+    box-shadow: none;
+    border: none;
+}
+#manage_us li:nth-child(2n+1) {
+    background-color: rgba(128,128,128,0.2);
+}
+.control-label[for='manage_us'] {
+    display: none;
+}
+th > label[for^='manage_us-'] {
+    font-weight: normal;
+}
+.dash-container div.form-group {
+    height: inherit;
+    margin-bottom: -0.25em;
 }

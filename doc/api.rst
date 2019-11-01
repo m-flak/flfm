@@ -71,13 +71,30 @@ Rules and Permissions
 
 .. currentmodule:: flfm.shell.rules
 
+**FUNCTIONS:**
+
 .. autofunction:: read_rules_file
 
 .. autofunction:: enforce_mapped
 
 .. autodecorator:: needs_rules
 
+**CLASSES:**
+
 .. autoclass:: Rules
+    :members:
+    :inherited-members:
+
+
+There are also rules and permissions that can exist solely in memory:
+
+
+Virtual *(in-memory)* Rules and Permissions
++++++++++++++++++++++++++++++++++++++++++++
+
+.. inheritance-diagram:: VirtualRules
+
+.. autoclass:: VirtualRules
     :members:
     :inherited-members:
 

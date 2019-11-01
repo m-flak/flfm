@@ -1,3 +1,4 @@
+import os
 import pathlib
 import random
 import tempfile
@@ -7,7 +8,7 @@ from flask_testing import TestCase
 from flfm import create_app
 from flfm.shell.paths import ShellPath, ShellDirectory
 from flfm.shell.rules import (
-    Rules, MappedDirectories, enforce_mapped
+    Rules, VirtualRules, MappedDirectories, enforce_mapped
 )
 from .config import Config
 
@@ -16,6 +17,17 @@ class TestConfig(Config):
     PROPAGATE_EXCEPTIONS = True
 
 class RulesTest(TestConfig, TestCase):
+    def __init__(self, *args, **kwargs):
+        super(RulesTest, self).__init__(*args, **kwargs)
+
+        our_path = os.path.abspath(os.path.dirname(__file__))
+
+        self.blank_rules = os.path.join(
+            our_path,
+            'samples',
+            'blank_rules'
+        )
+
     def create_app(self):
         return create_app(self)
 
@@ -258,3 +270,86 @@ class RulesTest(TestConfig, TestCase):
         response = self.client.get(the_url,
                                    query_string=dict(f=the_d_file.path))
         self.assert403(response)
+
+    def test_blank_rules_file(self):
+        blank_rules = Rules(self.blank_rules)
+        blank_mapping = MappedDirectories.from_rules(blank_rules)
+
+        self.assertEqual(len(blank_rules), 0)
+        self.assertEqual(len(blank_mapping), 0)
+
+class VirtualRulesTest(TestConfig, TestCase):
+    def create_app(self):
+        return create_app(self)
+
+    def test_virtual_rules_template(self):
+        rules_file = current_app.config['RULES_FILE']
+        reg_rules = Rules(rules_file)
+        virt_rules = VirtualRules(rules_file)
+
+        self.assertEqual(reg_rules.num_rules, virt_rules.num_rules)
+        self.assertEqual(reg_rules.rules, virt_rules.rules)
+
+    def test_virtual_rules_addition(self):
+        virt_rules = VirtualRules()
+
+        virt_rules.allowed('/fake/path')
+        virt_rules.allow_uploads('/faker/path')
+        virt_rules.disallowed('/fakest/path')
+
+        self.assertEqual(virt_rules.num_rules, 3)
+
+        virt_rules.allowed('/icky/vicky')
+        virt_rules.allow_uploads('/fairies/crocker')
+        virt_rules.disallowed('/timmys/happiness')
+
+        self.assertEqual(virt_rules.num_rules, 6)
+
+    def test_virtual_rules_deletion(self):
+        virt_rules = VirtualRules()
+
+        virt_rules.allowed('/fake/path')
+        virt_rules.allow_uploads('/faker/path')
+        virt_rules.disallowed('/fakest/path')
+        self.assertEqual(virt_rules.num_rules, 3)
+
+        virt_rules.allowed('/fake/path', True)
+        self.assertEqual(virt_rules.num_rules, 3-1)
+        virt_rules.allow_uploads('/faker/path', True)
+        self.assertEqual(virt_rules.num_rules, 3-2)
+        virt_rules.disallowed('/fakest/path', True)
+        self.assertEqual(virt_rules.num_rules, 3-3)
+
+    def test_virtual_rules_template_add(self):
+        rules_file = current_app.config['RULES_FILE']
+        reg_rules = Rules(rules_file)
+        virt_rules = VirtualRules(rules_file)
+
+        virt_rules.allowed('/fake/path')
+        virt_rules.allow_uploads('/faker/path')
+        virt_rules.disallowed('/fakest/path')
+        self.assertEqual(virt_rules.num_rules, 3+reg_rules.num_rules)
+
+    def test_rules_to_virtual_rules(self):
+        rules_file = current_app.config['RULES_FILE']
+        reg_rules = Rules(rules_file)
+        virt_rules = VirtualRules.make_virtual(reg_rules)
+
+        self.assertEqual(reg_rules.num_rules, virt_rules.num_rules)
+        self.assertEqual(reg_rules.rules, virt_rules.rules)
+
+    def test_mapping_equality_inequality(self):
+        virt_rules = VirtualRules()
+        virt_rules_empty = VirtualRules()
+
+        virt_rules.allowed('/fake/path')
+        virt_rules.allow_uploads('/faker/path')
+        virt_rules.disallowed('/fakest/path')
+
+        map1 = MappedDirectories.from_rules(virt_rules)
+        map2 = MappedDirectories.from_rules(virt_rules)
+        map3 = MappedDirectories.from_rules(virt_rules_empty)
+
+        self.assertEqual(map1, map2)
+        self.assertNotEqual(map1, map3)
+        self.assertNotEqual(map2, map3)

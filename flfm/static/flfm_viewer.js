@@ -4,7 +4,7 @@
     let media_list = new Promise(function(resolve, reject) {
         if (sessionStorage.getItem('MediaList')) {
             var the_data = JSON.parse(sessionStorage.getItem('MediaList'));
-            check_me = the_data.filter(e => e.cur === _viewer_current_file || e.prev === _viewer_current_file || e.next === _viewer_current_file);
+            var check_me = the_data.filter(e => e.cur === _viewer_current_file || e.prev === _viewer_current_file || e.next === _viewer_current_file);
             if (check_me.length >= 1) {
                 resolve(the_data);
             } else {
@@ -30,7 +30,7 @@
     function next_image() {
         if (slideshow_playing) {
             media_list.then(function(the_list) {
-                current = the_list.filter(e => e.cur === _viewer_current_file);
+                var current = the_list.filter(e => e.cur === _viewer_current_file);
                 if (current[0].next == null) {
                     _viewer_current_file = the_list[0].cur;
                 } else {
@@ -78,7 +78,7 @@
             });
             $("a#previous-file").on("click", function() {
                 media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === _viewer_current_file);
+                    var current = the_list.filter(e => e.cur === _viewer_current_file);
                     if (current[0].prev != null) {
                         _viewer_current_file = current[0].prev;
                         let wl = window.location;
@@ -89,7 +89,7 @@
             });
             $("a#next-file").on("click", function() {
                 media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === _viewer_current_file);
+                    var current = the_list.filter(e => e.cur === _viewer_current_file);
                     if (current[0].next != null) {
                         _viewer_current_file = current[0].next;
                         let wl = window.location;
@@ -169,7 +169,7 @@
 
             $("a#previous-file").on("click", function() {
                 media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === _viewer_current_file);
+                    var current = the_list.filter(e => e.cur === _viewer_current_file);
                     if (current[0].prev != null) {
                         _viewer_current_file = current[0].prev;
                         video_info.then(function(info) {
@@ -185,7 +185,7 @@
 
             $("a#next-file").on("click", function() {
                 media_list.then(function(the_list) {
-                    current = the_list.filter(e => e.cur === _viewer_current_file);
+                    var current = the_list.filter(e => e.cur === _viewer_current_file);
                     if (current[0].next != null) {
                         _viewer_current_file = current[0].next;
                         video_info.then(function(info) {

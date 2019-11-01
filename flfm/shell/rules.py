@@ -6,11 +6,13 @@
 
 """
 import collections.abc
+import copy
 import os
 import re
 from functools import wraps
 from werkzeug.datastructures import MultiDict
 from flask import current_app, g, flash, abort
+from flask_login import current_user
 from .paths import ShellDirectory
 
 def read_rules_file(rule_file):
@@ -60,9 +62,17 @@ def needs_rules(needing_method):
     def load_rules(*args, **kwargs):
         rules_file = current_app.config['RULES_FILE']
         if not hasattr(g, 'fm_rules'):
-            g.fm_rules = Rules(rules_file)
-        if rules_file is None or g.fm_rules.num_rules == 0:
-            flash('Please properly configure Flask FM before using.', 'danger')
+            the_rules = Rules(rules_file)
+
+            if current_user.is_authenticated:
+                users_rules = VirtualRules.make_virtual(the_rules)
+                users_rules.allowed(current_user.home_folder)
+                users_rules.allow_uploads(current_user.home_folder)
+                the_rules = users_rules
+
+            g.fm_rules = the_rules
+
+        # RULES ARE PRIMED AND READY!
 
         return needing_method(*args, **kwargs)
 
@@ -94,7 +104,95 @@ class Rules:
     def num_rules(self):
         """The number of rules in the ``rules`` file.
         """
-        return len(self.rules)
+        rule_keys = ('Allowed', 'AllowUpload', 'AllowUploads', 'Disallowed',
+                     'DisAllowed')
+        count_o_rules = 0
+
+        for key, count_us in self._rules.lists():
+            if key in rule_keys:
+                count_o_rules += len(count_us)
+
+        return count_o_rules
+
+    def __len__(self):
+        return self.num_rules
+
+# C'mon pylint VirtualRules derives from Rules
+# Derived classes get them juicy protecteds
+# pylint: disable=protected-access
+
+class VirtualRules(Rules):
+    """Mutable version of :class:`Rules`.
+
+    Construction from a file in this derivation is handled by ``template`` param.
+    To copy from a :class:`Rules` use :meth:`make_virtual`.
+
+    :param template: Identical to the ``rule_file`` param in :class:`Rules`.
+    :type template: str
+    """
+    def __init__(self, template=None):
+        Rules.__init__(self, template)
+
+    def _remove_item(self, key, value):
+        value_list = self._rules.poplist(key)
+
+        if not value_list:
+            return
+
+        for val in value_list:
+            if val == value:
+                continue
+            self._rules.add(key, val)
+
+    @classmethod
+    def make_virtual(cls, rules_class):
+        """Converts an immutable :class:`Rules` into a mutable :class:`VirtualRules`.
+
+        :param rules_class: What to convert.
+        :type rules_class: Instance of :class:`Rules`
+        """
+        now_virtual = cls(None)
+        now_virtual._rules = copy.copy(rules_class._rules)
+        return now_virtual
+
+    def allowed(self, directory, remove=False):
+        """Add or remove an *Allowed* rule for ``directory``.
+
+        :param directory: The directory to create this rule for.
+        :type directory: str
+        :param remove: Remove this rule for ``directory``. **Default:** *False*.
+        :type remove: bool
+        """
+        if remove:
+            self._remove_item('Allowed', directory)
+            return
+        self._rules.add('Allowed', directory)
+
+    def allow_uploads(self, directory, remove=False):
+        """Add or remove an *Allowed* rule for ``directory``.
+
+        :param directory: The directory to create this rule for.
+        :type directory: str
+        :param remove: Remove this rule for ``directory``. **Default:** *False*.
+        :type remove: bool
+        """
+        if remove:
+            self._remove_item('AllowUploads', directory)
+            return
+        self._rules.add('AllowUploads', directory)
+
+    def disallowed(self, directory, remove=False):
+        """Add or remove an *Allowed* rule for ``directory``.
+
+        :param directory: The directory to create this rule for.
+        :type directory: str
+        :param remove: Remove this rule for ``directory``. **Default:** *False*.
+        :type remove: bool
+        """
+        if remove:
+            self._remove_item('Disallowed', directory)
+            return
+        self._rules.add('Disallowed', directory)
 
 class MappedDirectory:
     """Represents a directory that is in the rules file, having rules.
@@ -272,7 +370,11 @@ class MappedDirectories(collections.abc.Mapping):
         while True:
             if num_yielded >= len(self):
                 break
-            mapped_dir = next(iterator)
+            # guard the next()
+            try:
+                mapped_dir = next(iterator)
+            except StopIteration:
+                break
             num_yielded += 1
             yield MappedDirectory(mapped_dir, self.D[mapped_dir][0],
                                   self.D[mapped_dir][1])
@@ -281,6 +383,11 @@ class MappedDirectories(collections.abc.Mapping):
         if isinstance(value, MappedDirectory):
             return value.dir_path in self.D
         return super().__contains__(value)
+
+    def __eq__(self, other):
+        if not isinstance(other, MappedDirectories):
+            return False
+        return self.D == other.D
 
     def get_mapped_dir(self, dir_path):
         """Select a specific mapped directory from within this container.

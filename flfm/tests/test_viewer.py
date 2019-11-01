@@ -4,7 +4,7 @@ from flask_testing import TestCase
 from flfm import create_app
 from flfm.misc import make_arg_url
 from flfm.shell.paths import ShellDirectory
-from flfm.viewer.vcache import VCFile
+from flfm.viewer.vcache import VCFile, vcache
 from .config import Config
 
 class TestConfig(Config):
@@ -35,6 +35,11 @@ class ViewerTest(TestConfig, TestCase):
             'output',
             'large_file.txt'
         )
+        self.cacheable_file = os.path.join(
+            our_path,
+            'output',
+            'cacheable_file.txt'
+        )
 
         self.faketree_dir = ShellDirectory.from_str_loc(self.allow_root).path
         self.disallow_dir = ShellDirectory.from_str_loc(self.explicit_disallow).path
@@ -59,12 +64,22 @@ class ViewerTest(TestConfig, TestCase):
             f.seek(self.VCACHE_MAX_FILESIZE+1024)
             f.write(b'\x20')
 
+        if os.path.exists(self.cacheable_file):
+            os.remove(self.cacheable_file)
+
+        with open(self.cacheable_file, 'wb') as f:
+            f.seek(self.VCACHE_MAX_FILESIZE//2)
+            f.write(b'\x20')
+
     def tearDown(self):
         if os.path.exists(self.sample_rules):
             os.remove(self.sample_rules)
 
         if os.path.exists(self.large_file):
             os.remove(self.large_file)
+
+        if os.path.exists(self.cacheable_file):
+            os.remove(self.cacheable_file)
 
     def create_app(self):
         return create_app(self)
@@ -158,3 +173,11 @@ class ViewerTest(TestConfig, TestCase):
         cache_id = self.get_context_variable('cache_id')
         self.assertFalse(was_cacheable)
         self.assertEqual(cache_id, -1)
+
+    def test_viewer_vcfile_equality(self):
+        self.assertTrue(vcache.is_file_cacheable(self.cacheable_file))
+
+        vc_inst1 = vcache.view_file(self.cacheable_file)
+        vc_inst2 = vcache.view_file(self.cacheable_file)
+
+        self.assertEqual(vc_inst1, vc_inst2)
