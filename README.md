@@ -4,10 +4,11 @@
 Flask File Manager (flfm) is a WSGI application written in Python.
 
 **Features:**
-* Built-in viewer for files. _Currently Supported: Text Files, Image Files, Video Files_
+* **Account Management.** _Do you want to serve things publicly or do you want users (or you) to be able to upload & save files privately?_ The choice is yours!
+* **Built-in viewer for files.** _Currently Supported: Text Files, Image Files, Video Files_
 * _**Configurable**_. Define where users can snoop around and upload (or not) files.
 * **SLIDESHOWS!** For image files, you can watch a slideshow of all images in a folder or manually sift through them.
-* Uploading of files.
+* **Uploading of files.**
 * **STREAM VIDEO CONTENT** The built-in viewer can play videos with a properly configured nginx.
 
 **Table of Contents**
