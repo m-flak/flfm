@@ -5,7 +5,7 @@ extraction:
         - bash
         - openssl
     python_setup:
-      version: 3.7
+      version: 3
     before_index:
       - make all
     index:
