@@ -6,6 +6,12 @@
             var new_url = window.location.href.replace(/(?!\/shell)\/\w+(?:[%1-9]*\w*)*#?$/, '');
             document.location.assign(new_url);
         });
+        $("a#buttonRoot").on("click", function() {
+            let whl = window.location.href;
+            const shellfrag = '/shell';
+            var new_url = whl.slice(0, whl.indexOf(shellfrag)+shellfrag.length);
+            document.location.assign(new_url);
+        });
 
         $("#settingsModal").on("show.bs.modal", function(e) {
             var cookie = Cookies.get('flfm_viewer');
