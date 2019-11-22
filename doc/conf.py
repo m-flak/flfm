@@ -48,8 +48,10 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 autodoc_mock_imports = [
     'flask',
     'flask_bootstrap',
+    'flask_login',
     'flask_session',
     'flask_socketio',
+    'flask_sqlalchemy',
     'filetype',
     'werkzeug',
     'cachetools'

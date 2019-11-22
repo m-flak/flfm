@@ -1,4 +1,4 @@
-dl.class > dt {
+dl.class > dt, dl.function > dt {
 	border-bottom: solid 1px;
 	margin-left: -1rem;
 }
@@ -9,4 +9,11 @@ div.section > h3, div.section > h2 {
 
 dl.class > dt:first-of-type, dl.function > dt:first-of-type {
 	background-color: #e4e8ec;
+}
+
+dl.function code:first-child.sig-prename::before {
+	content: "def ";
+	font-size: 12.5pt;
+	color: #3e4349;
+	font-style: italic;
 }

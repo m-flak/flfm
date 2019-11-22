@@ -129,6 +129,12 @@ span.btn a, span.btn-primary a {
     padding: 1rem 0 1rem 1rem;
 }
 
+.action-button {
+    background: #AFAFAF;
+    background-clip: padding-box;
+    border-radius: 2em;
+}
+
 #location-bar {
     margin-bottom: 1rem;
     -webkit-box-shadow: inset 0px -1.25em rgba(153,204,255,0.1),
@@ -174,7 +180,7 @@ div#layout {
     min-height: 80%;
 }
 
-#uploadModalLabel {
+#uploadModalLabel, #deleteConfirmModalLabel, #renameModalLabel {
     position: absolute;
     font-weight: bolder;
 }

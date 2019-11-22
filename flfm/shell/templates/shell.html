@@ -31,6 +31,11 @@
         </a>
     </li>
     <li>
+        <a id="buttonRoot" class="btn btn-primary" href="#" role="button" title="Return to Root...">
+            &#x2020;
+        </a>
+    </li>
+    <li>
         <a class="btn btn-primary fl-settings" href="#" role="button" title="Settings..." data-toggle="modal" data-target="#settingsModal">
             <img src="{{ url_for('static', filename='flfm_settings.gif') }}" />
         </a>
@@ -49,6 +54,17 @@
         <tr>
             <th id="header-contents" colspan="2">Contents</th>
             <th id="header-size" colspan="1">Size <i>(in bytes)</i></th>
+            {% if the_cur_user() -%}
+              {% if the_cur_user().is_authenticated -%}
+                {% if not the_cur_user().is_admin -%}
+                  {% if cwd_mapping.is_in_tree(the_cur_user().home_folder) -%}
+                  <th id="header-actions" colspan="2">Actions</th>
+                  {%- endif %}
+                {%- else -%}
+                <th id="header-actions" colspan="2">Actions</th>
+                {%- endif %}
+              {%- endif %}
+            {%- endif %}
         </tr>
     </thead>
     <tbody>
@@ -79,6 +95,35 @@
           <td>
               <p>{{ content.size }}</p>
           </td>
+          {% if the_cur_user() -%}
+            {% if the_cur_user().is_authenticated -%}
+              {% if not the_cur_user().is_admin -%}
+                {% if cwd_mapping.is_in_tree(the_cur_user().home_folder) -%}
+                <td>
+                    <a class="action-button delete-action" href="#" role="button" title="Delete" data-deletewhat="{{ content.path }}" data-toggle="modal" data-target="#deleteConfirmModal">
+                        <img src="{{ url_for('static', filename='flfm_delete.gif') }}" alt="Delete" />
+                    </a>
+                </td>
+                <td>
+                    <a class="action-button rename-action" href="#" role="button" title="Rename" data-renamewhat="{{ content.path }}" data-toggle="modal" data-target="#renameModal">
+                        <img src="{{ url_for('static', filename='flfm_rename.gif') }}" alt="Rename" />
+                    </a>
+                </td>
+                {%- endif %}
+              {%- else -%}
+              <td>
+                  <a class="action-button delete-action" href="#" role="button" title="Delete" data-deletewhat="{{ content.path }}" data-toggle="modal" data-target="#deleteConfirmModal">
+                      <img src="{{ url_for('static', filename='flfm_delete.gif') }}" alt="Delete" />
+                  </a>
+              </td>
+              <td>
+                  <a class="action-button rename-action" href="#" role="button" title="Rename" data-renamewhat="{{ content.path }}" data-toggle="modal" data-target="#renameModal">
+                      <img src="{{ url_for('static', filename='flfm_rename.gif') }}" alt="Rename" />
+                  </a>
+              </td>
+              {%- endif %}
+            {%- endif %}
+          {%- endif %}
       </tr>
     {% endfor -%}
     </tbody>
@@ -154,6 +199,57 @@
                     Close
                 </button>
                 <button type="button" id="settingsModalApplyButton" class="btn btn-primary" data-dismiss="modal">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete: </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="deleteConfirmModal-Data">
+                    <!-- variable storage for js -->
+                </form>
+                <p id="deleteConfirmModalMSG">Are you sure want to delete </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Close
+                </button>
+                <button type="button" id="deleteConfirmModalDeleteButton" class="btn btn-danger" data-dismiss="modal">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="renameModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="renameModalLabel">Rename: </h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="renameModal-Data">
+                    <!-- variable storage for js -->
+                </form>
+                <form id="renameModal-Widgets">
+                    <label for="renameNewName">Enter New File Name:</label>
+                    <input type="text" id="renameNewName" name="newname" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Close
+                </button>
+                <button type="button" id="renameModalRenameButton" class="btn btn-primary" data-dismiss="modal">Rename File</button>
             </div>
         </div>
     </div>
