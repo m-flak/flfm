@@ -2,14 +2,16 @@ import os
 import re
 import json
 import mimetypes
+import shutil
 import filetype
 from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
     url_for, current_app, make_response
 )
+from flask_login import login_required
 from flfm.misc import get_banner_string, make_arg_url, make_filepond_id
 import flfm.shell.video as vid_fmt
-from .paths import ShellPath
+from .paths import ShellPath, create_proper_shellitem
 from .rules import enforce_mapped, needs_rules, MappedDirectories
 from .uploads import UploadedFile
 
@@ -218,3 +220,62 @@ def mediainfo():
     resp = make_response(json.dumps(media_info))
     resp.mimetype = 'application/json'
     return resp
+
+@shell.route('/perform', methods=['POST'])
+@needs_rules
+@login_required
+def perform():
+    # get parameters, they exist as {'p1': blah, ...}
+    def get_parameters(formdata):
+        for k in formdata.keys():
+            if re.match(r'p([0-9]*)', k):
+                yield formdata[k]
+    # do the rule enforcement
+    # dir - ShellDirectory, file - ShellFile
+    def do_enforcement(dir, file):
+        input_dir = ''
+        if dir is not None:
+            input_dir = dir.path
+        elif file is not None:
+            input_dir = file.parent_directory()
+        mapped_dirs = MappedDirectories.from_shell_path(ShellPath(input_dir)).\
+                      apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
+        enforce_mapped(mapped_dirs, input_dir)
+        return
+
+    # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    action = request.form.get('action', None)
+    parameters = tuple(get_parameters(request.form))
+    # action name, number of parameters required
+    action_params = dict(delete=1, rename=2)
+
+    # validate requested action and parameters associated with it
+    if action is None or not parameters:
+        abort(400)
+    if action not in action_params.keys():
+        abort(400)
+    if len(parameters) != action_params[action]:
+        abort(400)
+
+    if 'delete' in action:
+        target = create_proper_shellitem(parameters[0])
+
+        if target.file:
+            do_enforcement(None, target)
+            os.remove(target.path)
+        else:
+            do_enforcement(target, None)
+            shutil.rmtree(target.path, True)
+    elif 'rename' in action:
+        target = create_proper_shellitem(parameters[0])
+        new_name = '{}/{}'.format(target.parent_directory(), parameters[1])
+
+        if target.file:
+            do_enforcement(None, target)
+            os.rename(target.path, new_name)
+        else:
+            do_enforcement(target, None)
+            os.rename(target.path, new_name)
+
+    return 'SUCCESS'

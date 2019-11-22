@@ -78,7 +78,18 @@
         $("#deleteConfirmModalDeleteButton").on("click", function() {
             let dcm_storage = $("#deleteConfirmModal").find("#deleteConfirmModal-Data");
             var delete_what = dcm_storage.find("#dcm-var-dw").val();
-            console.log(delete_what);
+
+            let wl = window.location;
+            $.ajax({
+                method: 'POST',
+                url: make_url(`${wl.protocol}//${wl.host}`, _flfm_root, '/perform'),
+                data: { action: 'delete', p1: delete_what },
+                dataType: 'text'
+            }).done(function(d) {
+                if (d === 'SUCCESS') {
+                    window.location.reload(true);
+                }
+            });
         });
 
         $("#deleteConfirmModal").on("hidden.bs.modal", function(e) {
@@ -96,7 +107,9 @@
             $("#deleteConfirmModalLabel").text(modal_lbl);
             $("#deleteConfirmModalMSG").text(modal_msg);
         });
-
+        /***********************************************************/
+        /******************* RENAME MODAL **************************/
+        /***********************************************************/
         $("#renameModal").on("show.bs.modal", function(e) {
             let rnm_storage = $("#renameModal").find("#renameModal-Data");
             var rnm_var = document.createElement('input');
@@ -120,8 +133,17 @@
             var the_new_name = rnm_widgets.find("#renameNewName").val();
 
             if (the_new_name.length >= 1) {
-                console.log(rename_what);
-                console.log(the_new_name);
+                let wl = window.location;
+                $.ajax({
+                    method: 'POST',
+                    url: make_url(`${wl.protocol}//${wl.host}`, _flfm_root, '/perform'),
+                    data: { action: 'rename', p1: rename_what, p2: the_new_name },
+                    dataType: 'text'
+                }).done(function(d) {
+                    if (d === 'SUCCESS') {
+                        window.location.reload(true);
+                    }
+                });
             }
         });
 

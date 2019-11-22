@@ -24,6 +24,11 @@ And, here is a more in-depth explanation of each.
 
 .. currentmodule:: flfm.shell.paths
 
+Shell Utility Functions
++++++++++++++++++++++++
+
+.. autofunction:: create_proper_shellitem
+
 Shell Items
 +++++++++++
 

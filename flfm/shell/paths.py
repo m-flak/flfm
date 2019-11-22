@@ -8,7 +8,26 @@
 from pathlib import Path
 import mimetypes
 import re
+import stat
 import filetype
+
+def create_proper_shellitem(str_path):
+    """Creates either a :class:`ShellFile` or a :class:`ShellDirectory`
+    depending on whatever the passed path actually is.
+
+    :param str_path: A path
+    :type str_path: str
+    :returns: :class:`ShellFile` **OR** :class:`ShellDirectory`
+    """
+    untyped_path = Path(str_path)
+    its_mode = untyped_path.lstat().st_mode
+
+    # It's a directory
+    if bool(stat.S_ISDIR(its_mode)):
+        return ShellDirectory(untyped_path)
+
+    # It's gotta be a file
+    return ShellFile(untyped_path)
 
 class ShellItem:
     """Base class for items contained within a
