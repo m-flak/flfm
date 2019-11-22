@@ -57,6 +57,90 @@
         });
 
         resize_location_bar("#location-bar", "#commands");
+
+        $("#deleteConfirmModal").on("show.bs.modal", function(e) {
+            let dcm_storage = $("#deleteConfirmModal").find("#deleteConfirmModal-Data");
+            var dcm_var = document.createElement('input');
+            var delete_what = e.relatedTarget.dataset['deletewhat'];
+
+            /* store state within the modal's dom tree */
+            dcm_var.type = 'hidden';
+            dcm_var.name = 'dcm-var-dw';
+            dcm_var.id = dcm_var.name;
+            dcm_var.value = delete_what;
+            dcm_storage.append($(dcm_var));
+
+            var filename = delete_what.split('/').pop();
+            $("#deleteConfirmModalLabel").text($("#deleteConfirmModalLabel").text()+` ${filename}`);
+            $("#deleteConfirmModalMSG").text($("#deleteConfirmModalMSG").text()+` ${filename}?`);
+        });
+
+        $("#deleteConfirmModalDeleteButton").on("click", function() {
+            let dcm_storage = $("#deleteConfirmModal").find("#deleteConfirmModal-Data");
+            var delete_what = dcm_storage.find("#dcm-var-dw").val();
+            console.log(delete_what);
+        });
+
+        $("#deleteConfirmModal").on("hidden.bs.modal", function(e) {
+            let dcm_storage = $("#deleteConfirmModal").find("#deleteConfirmModal-Data");
+            var filename = dcm_storage.find("#dcm-var-dw").val().split('/').pop();
+
+            /* reset the modal's state */
+            dcm_storage.empty();
+
+            /* reset the labels of the modal */
+            var modal_lbl = $("#deleteConfirmModalLabel").text();
+            var modal_msg = $("#deleteConfirmModalMSG").text();
+            modal_lbl = modal_lbl.slice(0, modal_lbl.indexOf(filename));
+            modal_msg = modal_msg.slice(0, modal_msg.indexOf(filename));
+            $("#deleteConfirmModalLabel").text(modal_lbl);
+            $("#deleteConfirmModalMSG").text(modal_msg);
+        });
+
+        $("#renameModal").on("show.bs.modal", function(e) {
+            let rnm_storage = $("#renameModal").find("#renameModal-Data");
+            var rnm_var = document.createElement('input');
+            var rename_what = e.relatedTarget.dataset['renamewhat'];
+
+            /* store state within the modal's dom tree */
+            rnm_var.type = 'hidden';
+            rnm_var.name = 'rnm-var-rw';
+            rnm_var.id = rnm_var.name;
+            rnm_var.value = rename_what;
+            rnm_storage.append($(rnm_var));
+
+            var current_filename = rename_what.split('/').pop();
+            $("#renameModalLabel").text($("#renameModalLabel").text()+` ${current_filename}`);
+        });
+
+        $("#renameModalRenameButton").on("click", function() {
+            let rnm_storage = $("#renameModal").find("#renameModal-Data");
+            let rnm_widgets = $("#renameModal").find("#renameModal-Widgets");
+            var rename_what = rnm_storage.find("#rnm-var-rw").val();
+            var the_new_name = rnm_widgets.find("#renameNewName").val();
+
+            if (the_new_name.length >= 1) {
+                console.log(rename_what);
+                console.log(the_new_name);
+            }
+        });
+
+        $("#renameModal").on("hidden.bs.modal", function(e) {
+            let rnm_storage = $("#renameModal").find("#renameModal-Data");
+            let rnm_widgets = $("#renameModal").find("#renameModal-Widgets");
+            var current_filename = rnm_storage.find("#rnm-var-rw").val().split('/').pop();
+
+            /* reset the modal's state */
+            rnm_storage.empty();
+
+            /* reset the labels of the modal */
+            var modal_lbl = $("#renameModalLabel").text();
+            modal_lbl = modal_lbl.slice(0, modal_lbl.indexOf(current_filename));
+            $("#renameModalLabel").text(modal_lbl);
+
+            /* reset the textfield */
+            rnm_widgets.find("#renameNewName").val('');
+        });
     }
     /* creates bootstrap alerts. used in the uploader */
     function make_error_alert(error_string) {
