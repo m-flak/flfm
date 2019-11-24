@@ -68,6 +68,11 @@ def needs_rules(needing_method):
                 users_rules = VirtualRules.make_virtual(the_rules)
                 users_rules.allowed(current_user.home_folder)
                 users_rules.allow_uploads(current_user.home_folder)
+                # Add shares
+                if current_user.shares_received.count() > 0:
+                    for share in current_user.shares_received.all():
+                        users_rules.allowed(share.owner.home_folder)
+
                 the_rules = users_rules
 
             g.fm_rules = the_rules

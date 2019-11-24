@@ -313,3 +313,18 @@ th > label[for^='manage_us-'] {
     height: inherit;
     margin-bottom: -0.25em;
 }
+.dash-container input[name='submit'] {
+    margin-top: 1rem;
+}
+
+p.share-nobody {
+    font-weight: bold;
+}
+.share-list, p.share-nobody {
+    padding-left: 1rem;
+    font-size: 8pt;
+}
+.share-list dd {
+    padding-left: 1.2rem;
+    font-style: italic;
+}

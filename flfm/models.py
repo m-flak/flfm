@@ -13,6 +13,12 @@ class User(UserMixin, f.db.Model):
     password = f.db.Column(f.db.String(255))
     admin = f.db.Column(f.db.Boolean)
     enabled = f.db.Column(f.db.Boolean)
+    shares_given = f.db.relationship('Share',
+                                     foreign_keys='Share.owner_id',
+                                     backref='owner', lazy='dynamic')
+    shares_received = f.db.relationship('Share',
+                                        foreign_keys='Share.shared_to_id',
+                                        backref='receiver', lazy='dynamic')
 
     # UserMixin override method
     @property
@@ -58,6 +64,16 @@ class User(UserMixin, f.db.Model):
 
     def change_password(self, new_password):
         return self.set_password(new_password)
+
+class Share(f.db.Model):
+    __tablename__ = 'shares'
+    id = f.db.Column(f.db.Integer, primary_key=True)
+    owner_id = f.db.Column(f.db.Integer, f.db.ForeignKey('users.id'))
+    shared_to_id = f.db.Column(f.db.Integer, f.db.ForeignKey('users.id'))
+
+    def __repr__(self):
+        return '<Share from \'{}\' to \'{}\''.format(self.owner_id,
+                                                     self.shared_to_id)
 
 @f.login.user_loader
 def load_user(id):
