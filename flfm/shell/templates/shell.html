@@ -40,6 +40,25 @@
             <img src="{{ url_for('static', filename='flfm_settings.gif') }}" />
         </a>
     </li>
+    {% if the_cur_user() -%}
+      {% if the_cur_user().is_authenticated -%}
+        {% if not the_cur_user().is_admin -%}
+          {% if cwd_mapping.is_in_tree(the_cur_user().home_folder) -%}
+          <li>
+              <a class="btn btn-primary fl-newdir" href="#" role="button" title="New Directory..." data-toggle="modal" data-target="#newDirectoryModal">
+                  <img src="{{ url_for('static', filename='flfm_newfolder.gif') }}" />
+              </a>
+          </li>
+          {%- endif %}
+        {%- else -%}
+        <li>
+            <a class="btn btn-primary fl-newdir" href="#" role="button" title="New Directory..." data-toggle="modal" data-target="#newDirectoryModal">
+                <img src="{{ url_for('static', filename='flfm_newfolder.gif') }}" />
+            </a>
+        </li>
+        {%- endif %}
+      {%- endif %}
+    {%- endif %}
     <li>
         <a class="btn btn-primary" id="buttonUpload" href="#" role="button" title="Upload File..." data-toggle="modal" data-target="#uploadModal">
             Upload
@@ -250,6 +269,36 @@
                     Close
                 </button>
                 <button type="button" id="renameModalRenameButton" class="btn btn-primary" data-dismiss="modal">Rename File</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="newDirectoryModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <img src="{{ url_for('static', filename='flfm_newfolder.gif') }}" />
+                    <h5 class="modal-title">Create Directory:</h5>
+                </div>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="newDirectoryModal-Data">
+                    <input type="hidden" name="currentdir" id="newDirectoryWhere" value="{{ whereami }}" />
+                </form>
+                <form id="newDirectoryModal-Widgets">
+                    <label for="newDirectoryNewDir">New Directory Name:</label>
+                    <input type="text" id="newDirectoryNewDir" name="newdirectory" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    Close
+                </button>
+                <button type="button" id="newDirectoryModalNewButton" class="btn btn-primary" data-dismiss="modal">Confirm</button>
             </div>
         </div>
     </div>

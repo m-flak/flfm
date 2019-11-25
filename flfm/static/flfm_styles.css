@@ -83,6 +83,14 @@ th#header-size {
     filter: brightness(120%);
 }
 
+.fl-newdir {
+    padding: 0.15em;
+}
+.fl-newdir img {
+    opacity: 0.75;
+    filter: brightness(92%);
+}
+
 .fl-btn-secondary {
     background-color: #6C757D;
     border-color: #6C757D;
@@ -205,6 +213,18 @@ div#layout {
 }
 #settingsModal div.modal-dialog > div.modal-content > div.modal-body > p > a > img {
     padding: 0 0 3px 3px;
+}
+
+#newDirectoryModal div.modal-dialog > div.modal-content > div.modal-header > div {
+    display: flex;
+    position: absolute;
+}
+#newDirectoryModal div.modal-dialog > div.modal-content > div.modal-header > div * {
+    padding-right: 1rem;
+    font-weight: bolder;
+}
+#newDirectoryModal div.modal-dialog > div.modal-content > div.modal-header > div h5 {
+    margin-top: 0.2em;
 }
 
 #viewer-contents {

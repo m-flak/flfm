@@ -8,11 +8,13 @@ from flask import (
     Blueprint, render_template, g, request, send_file, session, abort, redirect,
     url_for, current_app, make_response
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 from flfm.misc import get_banner_string, make_arg_url, make_filepond_id
 import flfm.shell.video as vid_fmt
 from .paths import ShellPath, create_proper_shellitem
-from .rules import enforce_mapped, needs_rules, MappedDirectories
+from .rules import (
+    enforce_mapped, needs_rules, MappedDirectories, MappedDirectory
+)
 from .uploads import UploadedFile
 
 shell = Blueprint('shell', __name__, template_folder='templates')
@@ -27,6 +29,17 @@ def is_viewable_mimetype(mimetype):
             return c
 
     return False
+
+def check_user_can_modify(operation_path):
+    if current_user.is_admin:
+        return
+
+    # perms irrelevant, simple path check
+    current_dir = MappedDirectory(current_user.home_folder, False, False)
+
+    if current_dir.is_in_tree(operation_path):
+        return
+    abort(403)
 
 # Set cache-control header to no-store so the viewer will always work if enabled
 @shell.after_request
@@ -238,10 +251,13 @@ def perform():
             input_dir = dir.path
         elif file is not None:
             input_dir = file.parent_directory()
+
+        # prevent people with curl & cookies from wreaking havoc
+        check_user_can_modify(input_dir)
+
         mapped_dirs = MappedDirectories.from_shell_path(ShellPath(input_dir)).\
                       apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
         enforce_mapped(mapped_dirs, input_dir)
-        return
 
     # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -277,5 +293,29 @@ def perform():
         else:
             do_enforcement(target, None)
             os.rename(target.path, new_name)
+
+    return 'SUCCESS'
+
+@shell.route('/newdir', methods=['POST'])
+@needs_rules
+@login_required
+def newdir():
+    where_at = request.form.get('where', None)
+    new_dir = request.form.get('name', None)
+
+    if None in (where_at, new_dir):
+        abort(400)
+
+    # prevent people with curl & cookies from wreaking havoc
+    check_user_can_modify(where_at)
+
+    mapped_dirs = MappedDirectories.from_shell_path(ShellPath(where_at)).\
+                  apply_rule_map(MappedDirectories.from_rules(g.fm_rules))
+    enforce_mapped(mapped_dirs, where_at)
+
+    try:
+        os.mkdir(os.path.join(where_at, new_dir))
+    except (FileExistsError, PermissionError, OSError):
+        return 'FAIL'
 
     return 'SUCCESS'
