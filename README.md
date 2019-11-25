@@ -6,7 +6,7 @@ Flask File Manager (flfm) is a WSGI application written in Python.
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/m-flak/flfm.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/m-flak/flfm/context:python)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/m-flak/flfm.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/m-flak/flfm/context:javascript)
 
-![flfm_preview](https://user-images.githubusercontent.com/35634280/68179977-9a735c80-ff57-11e9-9a05-92dd580d1ecc.gif)
+![flfm_new_gif](https://user-images.githubusercontent.com/35634280/69560476-6ea13080-0f71-11ea-8ffe-999281dac39c.gif)
 
 **Features:**
 * **Private sharing between Accounts** _Registered users can share the contents of their folders with other users & vice versa!_
