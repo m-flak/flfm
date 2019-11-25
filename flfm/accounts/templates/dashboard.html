@@ -23,7 +23,7 @@
 
 {% block location %}User Dashboard{% endblock %}
 
-{% set dash_tabs = ['user', 'admin'] %}
+{% set dash_tabs = ['user', 'admin', 'shares'] %}
 
 {% block contents -%}
 <div id="dashboard-page">
@@ -57,6 +57,26 @@
         {% if current_tab == 'admin' -%}
             <div class="dash-container f-grow-1">
                 <h3>Manage User Accounts:</h3>
+                {% if form -%}
+                    {{ wtf.quick_form(form) }}
+                {%- endif %}
+            </div>
+        {%- endif %}
+        {% if current_tab == 'shares' -%}
+            <div class="dash-container f-grow-1">
+                <h3>Manage Shares:</h3>
+                <p>Who's sharing with me?:</p>
+                {% if share_with_me -%}
+                    <dl class="share-list">
+                        {% for whom in share_with_me -%}
+                        <dt>{{ whom }}</dt>
+                        <dd>User is sharing with you.</dd>
+                        {%- endfor %}
+                    </dl>
+                {%- else -%}
+                    <p class="share-nobody">Nobody.</p>
+                {%- endif %}
+                <hr/>
                 {% if form -%}
                     {{ wtf.quick_form(form) }}
                 {%- endif %}

@@ -163,6 +163,35 @@
             /* reset the textfield */
             rnm_widgets.find("#renameNewName").val('');
         });
+        /***********************************************************/
+        /******************* NEW DIR MODAL **************************/
+        /***********************************************************/
+        $("#newDirectoryModalNewButton").on("click", function() {
+            let ndm_storage = $("#newDirectoryModal").find("#newDirectoryModal-Data");
+            let ndm_widgets = $("#newDirectoryModal").find("#newDirectoryModal-Widgets");
+            var where_to_create = ndm_storage.find("#newDirectoryWhere").val();
+            var directory_name = ndm_widgets.find("#newDirectoryNewDir").val();
+
+            if (directory_name.length >= 1) {
+                let wl = window.location;
+                $.ajax({
+                    method: 'POST',
+                    url: make_url(`${wl.protocol}//${wl.host}`, _flfm_root, '/newdir'),
+                    data: { where: where_to_create, name: directory_name },
+                    dataType: 'text'
+                }).done(function(d) {
+                    if (d === 'SUCCESS') {
+                        window.location.reload(true);
+                    }
+                });
+            }
+        });
+
+        $("#newDirectoryModal").on("hidden.bs.modal", function() {
+            let ndm_widgets = $("#newDirectoryModal").find("#newDirectoryModal-Widgets");
+
+            ndm_widgets.find("#newDirectoryNewDir").val('');
+        });
     }
     /* creates bootstrap alerts. used in the uploader */
     function make_error_alert(error_string) {

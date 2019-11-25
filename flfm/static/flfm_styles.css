@@ -83,6 +83,14 @@ th#header-size {
     filter: brightness(120%);
 }
 
+.fl-newdir {
+    padding: 0.15em;
+}
+.fl-newdir img {
+    opacity: 0.75;
+    filter: brightness(92%);
+}
+
 .fl-btn-secondary {
     background-color: #6C757D;
     border-color: #6C757D;
@@ -207,6 +215,18 @@ div#layout {
     padding: 0 0 3px 3px;
 }
 
+#newDirectoryModal div.modal-dialog > div.modal-content > div.modal-header > div {
+    display: flex;
+    position: absolute;
+}
+#newDirectoryModal div.modal-dialog > div.modal-content > div.modal-header > div * {
+    padding-right: 1rem;
+    font-weight: bolder;
+}
+#newDirectoryModal div.modal-dialog > div.modal-content > div.modal-header > div h5 {
+    margin-top: 0.2em;
+}
+
 #viewer-contents {
     margin: 1rem !important;
 }
@@ -312,4 +332,19 @@ th > label[for^='manage_us-'] {
 .dash-container div.form-group {
     height: inherit;
     margin-bottom: -0.25em;
+}
+.dash-container input[name='submit'] {
+    margin-top: 1rem;
+}
+
+p.share-nobody {
+    font-weight: bold;
+}
+.share-list, p.share-nobody {
+    padding-left: 1rem;
+    font-size: 8pt;
+}
+.share-list dd {
+    padding-left: 1.2rem;
+    font-style: italic;
 }
